@@ -1,0 +1,17 @@
+[package]
+name = "aqua"
+version = "0.1.0"
+authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
+
+[dependencies]
+env_logger = "0.3"
+handlebars = { version = "*", features = ["serde_type"] }
+iron = "0.5"
+log = "0.3"
+mime = "*"
+mime_guess = "*"
+router = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+time = "0.1"

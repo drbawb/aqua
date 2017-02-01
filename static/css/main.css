@@ -1,0 +1,11 @@
+body {
+  font-family: sans-serif;
+}
+
+header {
+  margin: 0 auto;
+  padding: 5px;
+  width: 720px;
+  background-color: #bababa;
+  border-radius: 10px;
+}
