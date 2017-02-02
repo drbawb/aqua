@@ -6,39 +6,43 @@ extern crate env_logger;
 extern crate handlebars;
 extern crate iron;
 extern crate mime_guess;
+extern crate r2d2;
+extern crate r2d2_postgres;
+extern crate postgres;
 extern crate router;
 extern crate serde_json;
 extern crate time;
 
 mod util;
 mod controllers;
+mod models;
 mod views;
 
-
-use handlebars::Handlebars;
 use iron::{Chain, Iron};
 use router::Router;
+use r2d2_postgres::{TlsMode, PostgresConnectionManager};
 
 fn main() {
     env_logger::init().expect("could not initialize console logging");
 
     // TODO: load these by walking directory ...
     info!("creating template registry ...");
-    let mut handlebars = Handlebars::new();
-    handlebars.register_template_file("layouts/main", "./priv/templates/layouts/main.html.hbs")
-        .expect("could not register layouts#main template") ;
-    handlebars.register_template_file("dash/index", "./priv/templates/dash/index.html.hbs")
-              .expect("could not register dash#index template");
+
+    // TODO: set us up the database
+    let config  = r2d2::Config::default();
+    let manager = PostgresConnectionManager::new("postgres://drbawb@192.168.1.11/aqua_rs", TlsMode::None).unwrap();
+    let pool    = r2d2::Pool::new(config, manager).unwrap();
 
     // TODO: set us up the chain ...
     let mut router = Router::new();
     router.get("/dash", controllers::dash::index, "dash#index");
 
     let mut chain = Chain::new(router);
-    chain.link_before(util::TemplateMiddleware::new(handlebars));
-    chain.link_before(util::ResponseTime);
-    chain.link_after(util::ResponseTime);
-    chain.link_around(util::TryFile);
+    chain.link_before(util::template::TemplateMiddleware::new());
+    chain.link_before(util::db::DbMiddleware::new(pool));
+    chain.link_before(util::timer::ResponseTime);
+    chain.link_after(util::timer::ResponseTime);
+    chain.link_around(util::try_file::TryFile);
 
     Iron::new(chain)
          .http("0.0.0.0:3000")
