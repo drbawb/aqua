@@ -9,3 +9,8 @@ header {
   background-color: #bababa;
   border-radius: 10px;
 }
+
+#tagger {
+    background-color: #bababa;
+    width: 300px;
+}
