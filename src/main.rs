@@ -2,13 +2,15 @@
 #[macro_use] extern crate mime;
 #[macro_use] extern crate serde_derive;
 
+extern crate crypto;
 extern crate env_logger;
 extern crate handlebars;
 extern crate iron;
 extern crate mime_guess;
+extern crate params;
+extern crate postgres;
 extern crate r2d2;
 extern crate r2d2_postgres;
-extern crate postgres;
 extern crate router;
 extern crate serde_json;
 extern crate time;
@@ -36,6 +38,7 @@ fn main() {
     // TODO: set us up the chain ...
     let mut router = Router::new();
     router.get("/dash", controllers::dash::index, "dash#index");
+    router.post("/entries/upload", controllers::dash::submit, "dash#submit");
 
     let mut chain = Chain::new(router);
     chain.link_before(util::template::TemplateMiddleware::new());

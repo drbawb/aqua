@@ -1,16 +1,23 @@
 <h2> the derpy template </h2>
-<span>{{derp}}</span>
 
+<div id="io-box">
+    <span>{{derp}}</span>
+</div>
 
+<div class="by-column">
+    <div id="dropbox" class="col-item">
+        Drop Files or URLs here!
+    </div>
 
-<div id="tagger">
-    <form>
-        <label for="tag-name">Tag: </label>
-        <input id="tag-name" type="text" placeholder="category:tag" autocomplete="off" />
-        <br /><br />
+    <div id="tagger" class="col-item">
+        <form>
+            <label for="tag-name">Tag: </label>
+            <input id="tag-name" type="text" placeholder="category:tag" autocomplete="off" />
+            <br /><br />
 
-        <div id="tag-auto-results">
-            tag results go here ...
-        </div>
-    </form>
+            <div id="tag-auto-results">
+                tag results go here ...
+            </div>
+        </form>
+    </div>
 </div>
