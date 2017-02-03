@@ -4,6 +4,7 @@
 #[macro_use] extern crate mime;
 #[macro_use] extern crate serde_derive;
 
+extern crate aqua_web;
 extern crate crypto;
 extern crate dotenv;
 extern crate env_logger;

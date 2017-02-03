@@ -1,0 +1,8 @@
+[package]
+name = "aqua-web"
+version = "0.1.0"
+authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
+
+[dependencies]
+conduit = "0.8.1"
+regex = "0.1.80"

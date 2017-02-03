@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
 
 [dependencies]
+aqua-web = { version = "0.1.0", path = "aqua-web" }
 diesel = { version = "0.10", features = ["postgres"] }
 diesel_codegen = { version = "0.10", features = ["postgres"] }
 dotenv = "0.8"
