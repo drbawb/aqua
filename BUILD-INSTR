@@ -1,0 +1,40 @@
+## Build Instructions
+
+Below is a list of instructions that describe how to resolve problems I've run into
+while attempting to build this project on various platforms. It's non-exhaustive, and since
+the Rust compiler isn't checking this it's probably out of date ;)
+
+## TODO
+
+- load schema straight into DB (w/o migrations)
+- diesel windows/gnu
+- diesel mac/gnu & linux/gnu instructions
+
+## `.env` file
+
+This program expects configuration to be provided in a .env file that lives in the
+working directory where you launch the executable from.
+
+At the moment it needs the following parameters:
+
+- `DATABASE_URL=postgres://<user>[:pw]@<host>[:port]/<db>`
+
+## Disel Setup (General)
+
+0. You will need a working installation of PostgreSQL (for the client libs)
+0. You will also need credentials to connect to a working PostgreSQL server
+0. `cargo install diesel_cli --no-default-features --features "postgres"`
+0. `diesel setup`: this will create the database described by `.env` if it doesn't exist
+0. `diesel migration run`: this will apply pending migrations
+
+
+## Diesel Setup (Windows)
+
+0. rustup to rust 1.15+ MSVC x86_64
+0. download postgresql (https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
+0. add postgres\bin & postgres\lib to your path
+0. set PQ_LIB_DIR = postgres\lib
+0. cargo install diesel_cli --no-default-features --features "postgres"
+0. cargo clean && cargo build
+
+## Building Project

@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
 
 [dependencies]
+diesel = { version = "0.10", features = ["postgres"] }
+diesel_codegen = { version = "0.10", features = ["postgres"] }
+dotenv = "0.8"
 env_logger = "0.3"
 log = "0.3"
 iron = "0.5"
@@ -11,9 +14,8 @@ handlebars = { version = "*", features = ["serde_type"] }
 mime = "*"
 mime_guess = "*"
 params = "0.6"
-postgres = "0.13"
 r2d2 = "*"
-r2d2_postgres = "*"
+r2d2-diesel = "*"
 router = "*"
 rust-crypto = "*"
 serde = "*"

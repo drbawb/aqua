@@ -1,5 +1,4 @@
 use controllers::prelude::*;
-use models::Entry;
 use views;
 
 #[derive(Serialize)]
@@ -9,12 +8,14 @@ struct Wat {
 
 /// Does the thing, wins the points ...
 pub fn index(req: &mut Request) -> IronResult<Response> {
-    // load model
-    let entry = Entry::find_by_hash(req, "0e4c9effdba2549c098a858f8cfa76cc96bf3a1ed47a4dbdce435e5fa4dd2078");
-    let data   = Wat { derp: format!("entry => {:?}", entry) };
+    // db lulz
+    let entries = ::models::queries::all_entries(req);
+    println!("got entries: {:?}", entries);
+
 
     // render template
-    let view   = views::render_into(req, "layouts/main", "dash/index", &data);
+    let data = Wat { derp: format!("entry => {:?}", "oh no") };
+    let view = views::render_into(req, "layouts/main", "dash/index", &data);
     Ok(Response::with((status::Ok, view))
                 .set(mime!(Text/Html)))
 }
@@ -30,7 +31,7 @@ pub fn submit(req: &mut Request) -> IronResult<Response> {
 
     let form = req.get_ref::<Params>().unwrap();
     if let Some(&Value::File(ref upload)) = form.get("upload") {
-        if (!upload.path.exists() || !upload.path.is_file()) {
+        if !upload.path.exists() || !upload.path.is_file() {
             return Ok(Response::with((status::BadRequest, "that file sux")));
         }
 
