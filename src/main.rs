@@ -23,10 +23,12 @@ mod schema;
 mod util;
 mod views;
 
-use aqua_web::mw::{Chain, Router};
+use aqua_web::mw::Router;
+use aqua_web::plug;
 use conduit::Method;
 use conduit_hyper::Server;
 use dotenv::dotenv;
+
 
 fn main() {
     dotenv().expect("must provide .env file, see README (TODO: haha jk)");
@@ -36,19 +38,19 @@ fn main() {
     info!("creating template registry ...");
 
     // TODO: set up some basic middlewre
-
     let mut router = Router::new();
     router.add_route(Method::Get, "/dash", controllers::dash::index);
     router.add_route(Method::Post, "/entries/upload", controllers::dash::submit);
 
-    let mut chain = Chain::new(router);
-    chain.with(util::db::DatabaseMiddleware)
-         .with(util::template::TemplateMiddleware)
-         .with(util::try_file::TryFile)
-         .with(util::timer::RequestTimer);
-    
+    let mut pipeline = plug::Pipeline::new();
+    pipeline.register(util::timer::plug);
+    pipeline.register(util::db::DbMiddleware::new());
+    pipeline.register(util::template::TemplateMiddleware::new());
+    pipeline.register(util::try_file::TryFileMiddleware);
+    pipeline.register(router);
+
     Server::http("0.0.0.0:3000")
         .expect("could not start http server")
-        .handle(chain)
+        .handle(pipeline)
         .expect("could not attach handler");
 }

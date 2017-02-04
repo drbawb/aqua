@@ -2,7 +2,7 @@ use controllers::prelude::*;
 use models;
 use views;
 
-use aqua_web::mw::Outcome;
+use aqua_web::plug;
 
 #[derive(Serialize)]
 struct Wat {
@@ -10,24 +10,25 @@ struct Wat {
 }
 
 /// Does the thing, wins the points ...
-pub fn index(req: &mut Request) -> Outcome {
+pub fn index(conn: &mut plug::Conn) {
     // db lulz
-    let entries = ::models::queries::all_entries(req);
+    let entries = ::models::queries::all_entries(conn.req());
     println!("got entries: {:?}", entries);
 
     // render template
     let data = Wat { derp: format!("entry => {:?}", entries) };
-    let view = views::render_into(req, "layouts/main", "dash/index", &data);
-    Outcome::Complete(respond_html(Cursor::new(view)))
+    let view = views::render_into(conn.req(), "layouts/main", "dash/index", &data);
+
+    conn.send_resp(200, &view);
 }
 
-pub fn submit(req: &mut Request) -> Outcome {
-    error!("content_len: {:?}", req.content_length());
+pub fn submit(conn: &mut plug::Conn) {
+    error!("content_len: {:?}", conn.req().content_length());
     let mut buf = vec![];
-    let wat = req.body().read_to_end(&mut buf).expect("oh my god");
+    let wat = conn.req_mut().body().read_to_end(&mut buf).expect("oh my god");
     error!("actual size: {:?}", wat);
 
-    Outcome::Complete(respond_html(Cursor::new(b"<h2>wat</h2>")))
+    conn.send_resp(200, "<h2>wat</h2>");
 }
 
 // TODO: (unwrap) trap file upload errors
