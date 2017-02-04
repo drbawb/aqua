@@ -1,16 +1,27 @@
 use std::sync::{Arc, RwLock};
 
+use aqua_web::mw::{Outcome, Segment, Wrapper};
+use conduit::Request;
 use handlebars::Handlebars;
-use iron::BeforeMiddleware;
-use iron::prelude::*;
-use iron::typemap;
 
-pub struct TemplateMiddleware {
+/// The extension registry type of the templating engine
+pub type TemplateEngine = Arc<RwLock<Handlebars>>;
+
+pub struct TemplateMiddleware;
+
+impl Wrapper for TemplateMiddleware {
+    fn around(self, handler: Box<Segment>) -> Box<Segment> {
+        Box::new(TemplateHandler::new(handler))
+    }
+}
+
+struct TemplateHandler {
+    next: Box<Segment>,
     engine: Arc<RwLock<Handlebars>>
 }
 
-impl TemplateMiddleware {
-    pub fn new() -> Self {
+impl TemplateHandler {
+    pub fn new(next: Box<Segment>) -> Self {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_file("layouts/main", "./priv/templates/layouts/main.html.hbs")
             .expect("could not register layouts#main template") ;
@@ -18,7 +29,7 @@ impl TemplateMiddleware {
         handlebars.register_template_file("dash/index", "./priv/templates/dash/index.html.hbs")
                   .expect("could not register dash#index template");
 
-        TemplateMiddleware { engine: Arc::new(RwLock::new(handlebars)) }
+        TemplateHandler { next: next, engine: Arc::new(RwLock::new(handlebars)) }
     }
 
     pub fn refresh(&self) {
@@ -34,14 +45,13 @@ impl TemplateMiddleware {
     }
 }
 
-pub struct TemplateEngine;
-impl typemap::Key for TemplateEngine { type Value = Arc<RwLock<Handlebars>>; }
 
-impl BeforeMiddleware for TemplateMiddleware {
-    fn before(&self, req: &mut Request) -> IronResult<()> {
+
+impl Segment for TemplateHandler {
+    fn invoke(&self, req: &mut Request) -> Outcome {
         // insert template engine into extensions
         self.refresh(); // TODO: only reload templates in dev mode?
-        req.extensions.insert::<TemplateEngine>(self.engine.clone());
-        Ok(())
+        req.mut_extensions().insert::<TemplateEngine>(self.engine.clone());
+        self.next.invoke(req)
     }
 }

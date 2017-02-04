@@ -18,12 +18,12 @@ extern crate serde_json;
 extern crate time;
 
 mod controllers;
-// mod models;
-// mod schema;
-// mod util;
-// mod views;
+mod models;
+mod schema;
+mod util;
+mod views;
 
-use aqua_web::mw::{Router, Stack};
+use aqua_web::mw::{Chain, Router};
 use conduit::Method;
 use conduit_hyper::Server;
 use dotenv::dotenv;
@@ -35,16 +35,18 @@ fn main() {
     // TODO: load these by walking directory ...
     info!("creating template registry ...");
 
-    // TODO: set us up the database
+    // TODO: set up some basic middlewre
 
-
-    // TODO: set us up the chain ...
-    let mut stack  = Stack::new();
     let mut router = Router::new();
-    stack.add_segment(router);
+    router.add_route(Method::Get, "/dash", controllers::dash::index);
+
+    let mut chain = Chain::new(router);
+    chain.with(util::db::DatabaseMiddleware)
+         .with(util::template::TemplateMiddleware)
+         .with(util::timer::RequestTimer);
     
     Server::http("0.0.0.0:3000")
         .expect("could not start http server")
-        .handle(stack)
+        .handle(chain)
         .expect("could not attach handler");
 }

@@ -29,8 +29,7 @@ impl Router {
 	}
 
 	/// Attaches a handler to a given route [regexp].
-	pub fn add_route<S: Segment>(&mut self,  method:  Method, pattern: &str, handler: S) 
-    where S: Send+Sync+'static {
+	pub fn add_route<S: Segment>(&mut self,  method:  Method, pattern: &str, handler: S) {
 	
 		// add it to our method-routes.
 		let mut routes = self.routes.write().unwrap();
@@ -58,7 +57,7 @@ impl Segment for Router {
 
         match handler {
             Some(route) => route.invoke_handler(req),
-            None => Outcome::Halt(404, "router failed: not found.".to_string()),
+            None => return Outcome::Halt(404, "router failed: not found.".to_string()),
         }
     }
 }

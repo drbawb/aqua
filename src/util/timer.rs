@@ -1,22 +1,24 @@
-use iron::{BeforeMiddleware, AfterMiddleware};
-use iron::prelude::*;
-use iron::typemap;
+use aqua_web::mw::{Outcome, Segment, Wrapper};
+use conduit::Request;
 use time::precise_time_ns;
 
-pub struct ResponseTime;
-impl typemap::Key for ResponseTime { type Value = u64; }
+pub struct RequestTimer;
 
-impl BeforeMiddleware for ResponseTime {
-    fn before(&self, req: &mut Request) -> IronResult<()> {
-        req.extensions.insert::<ResponseTime>(precise_time_ns());
-        Ok(())
+impl Wrapper for RequestTimer {
+    fn around(self, handler: Box<Segment>) -> Box<Segment> {
+        Box::new(RequestTimeHandler(handler))
     }
 }
 
-impl AfterMiddleware for ResponseTime {
-    fn after(&self, req: &mut Request, resp: Response) -> IronResult<Response> {
-        let delta = precise_time_ns() - *req.extensions.get::<ResponseTime>().unwrap();
-        println!("Request took: {}ms", (delta as f64) / 1000000.0);
-        Ok(resp)
+struct RequestTimeHandler(Box<Segment>);
+
+impl Segment for RequestTimeHandler {
+    fn invoke(&self, req: &mut Request) -> Outcome {
+        println!("--- Request start ---");
+        let start = precise_time_ns();
+        let outcome = self.0.invoke(req);
+        let delta = precise_time_ns() - start;
+        println!("Request took: {}ms\n", (delta as f64) / 1000000.0);
+        outcome
     }
 }
