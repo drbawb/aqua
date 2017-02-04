@@ -1,0 +1,62 @@
+# project `aqua`
+
+_Abandon all hope, ye who enter here._  
+This is a brand new project, most things are probably incomplete and/or terribly broken.
+
+---
+
+`aqua` is a program to manage large image libraries using a combination of two ideas:
+
+- Content addressable file storage: all media imported into `aqua` will be stored on disk
+  according to its unique SHA-256 fingerprint. This allows for rapid (exact) duplicate detection,
+  along with quick file lookups.
+
+- Searchable tags: users can create any number of tags and apply them to any number of hashes.
+  This allows for extremely flexible organization, along with powerful search & query capabilities.
+  
+The program will consist of two major parts:
+
+- aqua-remote: a web server which allows you to upload files & URLs from any web browser.
+  your server will fetch these files and automatically import them to your central library.
+
+- aqua-dropbox: a small directory watcher which can be used to import media from certain
+  directories on the machine which hosts your central library. In practice this works exactly
+  like the web UI, it simply offers quick & dirty integration w/ your OS's native save dialog.
+
+These programs will share a common database. At the moment `aqua` requires that you have access
+to a working PostgreSQL database. _(This database is only used for storing metadata about the repository,
+as such it does not necessarily need to be on the same machine which hosts the media files themselves.)_
+
+
+
+## Getting Started
+
+This is a Rust project, you will need the following pre-requisites:
+
+- a working postgresql database (google instructions for your specific OS)
+- `rustc` and `cargo`, which can be installed with [rustup.](https://rustup.rs/)
+- `diesel_cli` for setting up the database: `$ cargo install diesel_cli`
+  - See: `BUILD-INSTR` for information about setting up diesel on 
+    various operating systems.
+
+Once these are installed you can build the project as follows:
+
+0. `$ diesel setup` -- this will initialize a brand new database, you only need to do this once
+0. `$ diesel migration run` -- this will apply the most recent patches to your database schema
+0. `$ cargo build` -- this will build the project
+0. `$ cargo run` -- this will (currently) start the web server on port 3000
+
+
+
+## TODO
+
+Below is a list of things that need to be done, in no particular order:
+
+- [ ] MISC: Supporting documentation (code doc, LICENSE file, etc.)
+- [ ] MISC: Ease-of-use / quality-of-life improvements to the `aqua-web` framework
+- [ ] WEB UI: upload images to special "pending review" tag
+- [ ] WEB UI: "pending review" gallery w/ quick tagging facilities
+- [ ] WEB UI: search images / gallery page
+- [ ] WEB UI: modify tags for any image
+- [ ] CLI: utility to query tag database and create a "virtual directory" of search results via symbolic links
+- [ ] CLI: OS independent folder watching to "pending review" tag
