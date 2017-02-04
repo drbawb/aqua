@@ -198,7 +198,7 @@ impl Plug for Pipeline {
     }
 }
 
-impl<F> Plug for F 
-where F: Send + Sync + 'static + Fn(&mut Conn) {
+/// Bare functions may be used in a pipelien to handle requests
+impl<F> Plug for F where F: Fn(&mut Conn) + Send+Sync +'static {
     fn call(&self, conn: &mut Conn) { (*self)(conn) }
 }
