@@ -1,11 +1,11 @@
 use mw::route::Route;
-use mw::{Segment, Outcome};
+use plug::{Conn, Plug};
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::sync::{Arc,RwLock};
 
-use conduit::{Method, Request};
+use conduit::Method;
 
 // #[cfg(test)] use test::{black_box, Bencher};
 
@@ -29,7 +29,7 @@ impl Router {
 	}
 
 	/// Attaches a handler to a given route [regexp].
-	pub fn add_route<S: Segment>(&mut self,  method:  Method, pattern: &str, handler: S) {
+	pub fn add_route<P: Plug>(&mut self,  method:  Method, pattern: &str, handler: P) {
 	
 		// add it to our method-routes.
 		let mut routes = self.routes.write().unwrap();
@@ -43,21 +43,21 @@ impl Router {
 	}
 }
 
-impl Segment for Router {
-    fn invoke(&self, req: &mut Request) -> Outcome {
+impl Plug for Router {
+    fn call(&self, conn: &mut Conn) {
  		let routes = self.routes.read().unwrap();
- 		let handler = routes.get(&req.method()).and_then(|routes| {
+ 		let handler = routes.get(&conn.req_mut().method()).and_then(|routes| {
  			println!("method found...");
  
  			routes.iter().find(|route| {
- 				println!("checking route... {}", req.path());
- 				route.matches(&req.path()[..])
+ 				println!("checking route... {}", conn.req().path());
+ 				route.matches(&conn.req().path()[..])
  			})
  		});
 
         match handler {
-            Some(route) => route.invoke_handler(req),
-            None => return Outcome::Halt(404, "router failed: not found.".to_string()),
+            Some(route) => route.invoke_handler(conn),
+            None => conn.send_resp(404, "router error: route not found"),
         }
     }
 }

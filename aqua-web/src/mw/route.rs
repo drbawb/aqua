@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
 use mw::regexp::Expression;
-use mw::{Segment, Outcome};
-
-use conduit::Request;
+use plug::{Conn, Plug};
 
 pub type MatchContext = HashMap<String,String>;
-pub type Handler = Box<Segment+Send+Sync+'static>;
+pub type Handler = Box<Plug>;
 
 /// A route is a combination of a compiled matcher along with an
 /// invokable handler.
@@ -24,8 +22,7 @@ impl Route {
     /// Create a route using a template string and a stack `Segment`.
     /// Please see the documentation for `Expression` to learn more
     /// about the formatting of the template string.
-	pub fn new<S: Segment>(template: &str, handler: S) -> Route 
-    where S: Send + Sync + 'static {
+	pub fn new<P: Plug>(template: &str, handler: P) -> Route {
 		Route {
 			matcher: Expression::from_template(template).unwrap(),
 			handler: Box::new(handler),
@@ -48,11 +45,11 @@ impl Route {
 	/// a chance to modify the response.
 	///
 	/// Any error's raised by the route will be stored in the `Response.err` field.
-	pub fn invoke_handler(&self, req: &mut Request) -> Outcome {
+	pub fn invoke_handler(&self, conn: &mut Conn) {
         // NOTE: binding is here just for lexical scope (to borrow req)
-        let context = { self.get_context(req.path()) };
-        req.mut_extensions().insert::<MatchContext>(context);
-        (*self.handler).invoke(req)
+        let context = { self.get_context(conn.req().path()) };
+        conn.req_mut().mut_extensions().insert::<MatchContext>(context);
+        (*self.handler).call(conn)
 	}
 }
 

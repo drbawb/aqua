@@ -17,7 +17,6 @@ pub enum Outcome {
     Complete(Response),
 }
 
-
 pub trait Wrapper {
     fn around(self, handler: Box<Segment>) -> Box<Segment>;
 }
