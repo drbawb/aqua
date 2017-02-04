@@ -21,6 +21,15 @@ pub fn index(req: &mut Request) -> Outcome {
     Outcome::Complete(respond_html(Cursor::new(view)))
 }
 
+pub fn submit(req: &mut Request) -> Outcome {
+    error!("content_len: {:?}", req.content_length());
+    let mut buf = vec![];
+    let wat = req.body().read_to_end(&mut buf).expect("oh my god");
+    error!("actual size: {:?}", wat);
+
+    Outcome::Complete(respond_html(Cursor::new(b"<h2>wat</h2>")))
+}
+
 // TODO: (unwrap) trap file upload errors
 // pub fn submit(req: &mut Request) -> IronResult<Response> {
 //     use std::fs::File;

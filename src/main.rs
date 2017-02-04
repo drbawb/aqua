@@ -39,6 +39,7 @@ fn main() {
 
     let mut router = Router::new();
     router.add_route(Method::Get, "/dash", controllers::dash::index);
+    router.add_route(Method::Post, "/entries/upload", controllers::dash::submit);
 
     let mut chain = Chain::new(router);
     chain.with(util::db::DatabaseMiddleware)
