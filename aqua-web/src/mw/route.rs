@@ -57,13 +57,11 @@ impl Route {
 mod test {
     use super::*;
     use conduit::Request;
-    use mw::{Segment, Outcome};
+    use plug::{Conn, Plug};
 
     struct MockHandler;
-    impl Segment for MockHandler {
-        fn invoke(&self, req: &mut Request) -> Outcome {
-            Outcome::Halt(500, "test case".to_string())
-        }
+    impl Plug for MockHandler {
+        fn call(&self, conn: &mut Conn) {}
     }
 
  	#[test]
