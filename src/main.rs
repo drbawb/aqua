@@ -31,27 +31,31 @@ use dotenv::dotenv;
 
 
 fn main() {
+    // load configuration from .env
     dotenv().expect("must provide .env file, see README (TODO: haha jk)");
     env_logger::init().expect("could not initialize console logging");
 
-    // TODO: load these by walking directory ...
-    info!("creating template registry ...");
+    // these are application extensions which our controllers expect to be present
+    let mut extensions = plug::Pipeline::new();
+    extensions.register(util::db::DbMiddleware::new());
+    extensions.register(util::template::TemplateMiddleware::new());
 
-    // TODO: set up some basic middlewre
+    // the main entry point into our application
     let mut router = Router::new();
     router.add_route(Method::Get, "/dash", controllers::dash::index);
     router.add_route(Method::Post, "/entries/upload", controllers::dash::submit);
 
-    let mut pipeline = plug::Pipeline::new();
-    pipeline.register(util::timer::plug);
-    pipeline.register(MultipartParser);
-    pipeline.register(util::db::DbMiddleware::new());
-    pipeline.register(util::template::TemplateMiddleware::new());
-    pipeline.register(util::try_file::TryFileMiddleware);
-    pipeline.register(router);
+    // the endpoint provides basic HTTP massaging before our router is invoked
+    // with the current request data ...
+    let mut endpoint = plug::Pipeline::new();
+    endpoint.register(util::timer::plug);
+    endpoint.register(util::try_file::TryFileMiddleware);
+    endpoint.register(MultipartParser);
+    endpoint.register(extensions);
+    endpoint.register(router);
 
     Server::http("0.0.0.0:3000")
         .expect("could not start http server")
-        .handle(pipeline)
+        .handle(endpoint)
         .expect("could not attach handler");
 }
