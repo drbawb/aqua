@@ -43,6 +43,7 @@ fn main() {
     let mut chain = Chain::new(router);
     chain.with(util::db::DatabaseMiddleware)
          .with(util::template::TemplateMiddleware)
+         .with(util::try_file::TryFile)
          .with(util::timer::RequestTimer);
     
     Server::http("0.0.0.0:3000")
