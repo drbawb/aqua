@@ -1,6 +1,6 @@
 use util::template::TemplateEngine;
 
-use iron::request::Request;
+use conduit::Request;
 use serde_json::value::ToJson;
 
 #[derive(Serialize)]
@@ -8,7 +8,7 @@ struct Layout { inner: String }
 
 pub fn render_into<T>(req: &Request, layout: &str, template: &str, data: &T) -> String
 where T: ToJson {
-    let engine = req.extensions.get::<TemplateEngine>()
+    let engine = req.extensions().find::<TemplateEngine>()
         .expect("template engine requested, but not available!")
         .clone();
 

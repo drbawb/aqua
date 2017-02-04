@@ -6,8 +6,8 @@ pub struct Entry {
 }
 
 pub mod queries {
+    use conduit::Request; // TODO: get yo server outta here
     use diesel::prelude::*;
-    use iron::request::Request;
     
     use super::Entry;
     use util::db::DbPool;
@@ -15,7 +15,7 @@ pub mod queries {
     pub fn all_entries(req: &Request) -> Vec<Entry> {
         use schema::entries::dsl::*;
 
-        let conn = req.extensions.get::<DbPool>()
+        let conn = req.extensions().find::<DbPool>()
             .expect("could not load DB pooling extension")
             .get()
             .expect("could not fetch DB connection from pool");
