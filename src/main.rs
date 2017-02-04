@@ -23,7 +23,7 @@ mod schema;
 mod util;
 mod views;
 
-use aqua_web::mw::Router;
+use aqua_web::mw::{MultipartParser, Router};
 use aqua_web::plug;
 use conduit::Method;
 use conduit_hyper::Server;
@@ -44,6 +44,7 @@ fn main() {
 
     let mut pipeline = plug::Pipeline::new();
     pipeline.register(util::timer::plug);
+    pipeline.register(MultipartParser);
     pipeline.register(util::db::DbMiddleware::new());
     pipeline.register(util::template::TemplateMiddleware::new());
     pipeline.register(util::try_file::TryFileMiddleware);

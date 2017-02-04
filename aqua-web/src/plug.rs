@@ -108,7 +108,7 @@ impl<'r> Conn<'r> {
     }
 
     /// Borrows the underlying request object immutably
-    pub fn req(&mut self) -> &Request { &*self.req }
+    pub fn req(&self) -> &Request { &*self.req }
 
     /// Borrows the underlying request object mutably
     pub fn req_mut(&mut self) -> &mut Request { self.req }
