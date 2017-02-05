@@ -55,6 +55,9 @@ At the moment a few routes that can be used include:
 
 Below is a list of things that need to be done, in no particular order:
 
+- [ ] WEB-FW: router should support mounting subrouters 
+- [ ] PERF: HTTP/2 + cache tags for thumbnails
+- [ ] PERF: send/recv local paths for local web browsers (?)
 - [ ] MISC: Need to be able to select content storage directory
 - [ ] MISC: Supporting documentation (code doc, LICENSE file, etc.)
 - [ ] MISC: Ease-of-use / quality-of-life improvements to the `aqua-web` framework
