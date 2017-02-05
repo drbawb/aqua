@@ -1,9 +1,11 @@
 <h2>entries</h2>
 
-<ul>
+<div class="list gallery">
     {{#each entries}}
-        <li>
-            <a href="/entries/{{this.entry_id}}">entry {{this.entry_id}}</a>
-        </li>
+        <div class="list thumb">
+            <a href="/entries/{{this.entry_id}}">
+                <img src="/entries/thumb/{{this.entry_id}}" />
+            </a>
+        </div>
     {{/each}}
-</ul>
+</div>

@@ -32,6 +32,16 @@ header {
     background-color: #909090;
 }
 
+.list.gallery {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.list.thumb {
+    margin: 10px;
+    width: 200px; height: 200px;
+}
+
 /* generic flexbox stuff */
 .by-column {
     display: flex;
