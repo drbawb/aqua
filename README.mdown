@@ -46,12 +46,16 @@ Once these are installed you can build the project as follows:
 0. `$ cargo build` -- this will build the project
 0. `$ cargo run` -- this will (currently) start the web server on port 3000
 
+At the moment a few routes that can be used include:
 
+- `GET /tags/{schema}/{name}` lists all entries for a given tag (by name)
+- `GET /entries/{id}` sends the file for a given entry (by id)
 
 ## TODO
 
 Below is a list of things that need to be done, in no particular order:
 
+- [ ] MISC: Need to be able to select content storage directory
 - [ ] MISC: Supporting documentation (code doc, LICENSE file, etc.)
 - [ ] MISC: Ease-of-use / quality-of-life improvements to the `aqua-web` framework
 - [ ] WEB UI: upload images to special "pending review" tag

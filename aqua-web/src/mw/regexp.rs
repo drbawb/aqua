@@ -97,6 +97,11 @@ impl Expression {
 			Some(captures) => {
 				for idx in 0..self.names.len() {
 					if let Some(binding) = captures.at(idx+1) {
+                        // TODO: do we really want urlencoding in here?
+                        // TODO: decode utf8 lossy? since this is a middleware it's not
+                        //       clear that there's a good way to pass decoding errors up
+                        //       to the caller ...
+                        //
 						debug!("got route capture {}", binding);
                         let decoded_capture = percent_encoding::percent_decode(binding.as_bytes())
                                 .decode_utf8_lossy();
