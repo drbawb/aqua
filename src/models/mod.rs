@@ -28,7 +28,7 @@ pub struct NewTag<'a> {
     pub name: &'a str,
 }
 
-#[derive(Debug, Queryable)]
+#[derive(Debug, Queryable, Serialize)]
 pub struct EntryTag {
     pub tag_id:   i64,
     pub entry_id: i64,
@@ -46,27 +46,52 @@ pub mod queries {
     use diesel;
     use diesel::prelude::*;
     
-    use models::{Entry, NewEntry};
-    use schema::entries::dsl::*;
+    use models::{Entry, EntryTag, NewEntry, Tag};
     use util::db::require_db_conn;
 
     pub fn find_entry(conn: &plug::Conn, entry_id: i64) -> Option<Entry> {
+        use schema::entries::dsl::*;
+
         let conn = require_db_conn(conn);
         entries.filter(id.eq(entry_id))
             .get_result(&*conn)
             .ok()
     }
 
+    // TODO: join these through many<->many
+    pub fn find_entries_for(conn: &plug::Conn, dest_tag_id: i64) -> Option<Vec<EntryTag>> {
+        use schema::entries_tags::dsl::*;
+
+        let conn = require_db_conn(conn);
+        entries_tags.filter(tag_id.eq(dest_tag_id))
+            .load(&*conn)
+            .ok()
+    }
+
     pub fn all_entries(conn: &plug::Conn) -> Vec<Entry> {
+        use schema::entries::dsl::*;
+
         let conn = require_db_conn(conn);
         let results = entries.limit(5).load::<Entry>(&*conn);
         return results.unwrap();
     }
 
     pub fn find_or_insert<'a>(conn: &mut plug::Conn, entry: NewEntry<'a>) -> Option<Entry> {
+        use schema::entries::dsl::*;
+
         let conn = require_db_conn(conn);
         diesel::insert(&entry)
             .into(entries)
             .get_result(&*conn).ok()
     }
+
+
+    pub fn find_tag(conn: &plug::Conn, tag_name: &str) -> Option<Tag> {
+        use schema::tags::dsl::*;
+
+        let conn = require_db_conn(conn);
+        tags.filter(name.eq(tag_name))
+            .get_result(&*conn)
+            .ok()
+    } 
 }

@@ -20,6 +20,11 @@ struct Wat {
     derp: String,
 }
 
+#[derive(Serialize)]
+struct EntryListView {
+    entries: Vec<models::EntryTag>,
+}
+
 /// Does the thing, wins the points ...
 pub fn index(conn: &mut plug::Conn) {
     // db lulz
@@ -33,7 +38,30 @@ pub fn index(conn: &mut plug::Conn) {
     conn.send_resp(200, &view);
 }
 
+/// Fetches a list of images matching the named tag
+/// `GET /tags/{name}`
+pub fn show_tags(conn: &mut plug::Conn) {
+    use models::{queries, Entry};
+
+    let tag_name = { conn.find::<MatchContext>()
+        .expect("could not read route params")
+        .get("name")
+        .expect("could not find entry ID in route params")
+        .clone()
+    };
+
+    // load entry pointers for this tag
+    let results = queries::find_tag(conn, &tag_name)
+        .and_then(|tag| queries::find_entries_for(conn, tag.id))
+        .unwrap_or(vec![]);
+
+    let data = EntryListView { entries: results };
+    let view = views::render_into(conn.req(), "layouts/main", "dash/list", &data);
+    conn.send_resp(200, &view);
+}
+
 /// Fetch the file for a given entry ID
+/// `GET /show/{id}`
 pub fn show_id(conn: &mut plug::Conn) {
     use models::{queries, Entry};
 

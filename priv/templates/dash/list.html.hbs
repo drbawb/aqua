@@ -1,0 +1,9 @@
+<h2>entries</h2>
+
+<ul>
+    {{#each entries}}
+        <li>
+            <a href="/entries/{{this.entry_id}}">entry {{this.entry_id}}</a>
+        </li>
+    {{/each}}
+</ul>

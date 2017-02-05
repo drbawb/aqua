@@ -19,6 +19,9 @@ impl TemplateMiddleware {
         handlebars.register_template_file("dash/index", "./priv/templates/dash/index.html.hbs")
                   .expect("could not register dash#index template");
 
+        handlebars.register_template_file("dash/list", "./priv/templates/dash/list.html.hbs")
+                  .expect("could not register dash#list template");
+
         TemplateMiddleware { engine: Arc::new(RwLock::new(handlebars)) }
     }
 
@@ -26,12 +29,16 @@ impl TemplateMiddleware {
         let mut handlebars = self.engine.write().expect("could not lock template registry");
         handlebars.unregister_template("layouts/main");
         handlebars.unregister_template("dash/index");
+        handlebars.unregister_template("dash/list");
 
         handlebars.register_template_file("layouts/main", "./priv/templates/layouts/main.html.hbs")
             .expect("could not register layouts#main template") ;
         
         handlebars.register_template_file("dash/index", "./priv/templates/dash/index.html.hbs")
                   .expect("could not register dash#index template");
+
+        handlebars.register_template_file("dash/list", "./priv/templates/dash/list.html.hbs")
+                  .expect("could not register dash#list template");
     }
 }
 
