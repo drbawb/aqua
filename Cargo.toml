@@ -9,6 +9,11 @@ authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
 name = "aqua"
 
 [[bin]]
+name = "aqua-find"
+path = "src/bin/aqua_find.rs"
+doc = false
+
+[[bin]]
 name = "import"
 path = "src/bin/import.rs"
 doc = false
