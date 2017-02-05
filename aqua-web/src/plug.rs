@@ -5,6 +5,7 @@ use std::io::{self, Cursor, Write};
 use std::path::Path;
 
 use conduit::{Handler, Request, Response};
+use mime_guess::guess_mime_type;
 
 type HeaderMap = HashMap<String, Vec<String>>;
 
@@ -78,6 +79,10 @@ impl<'r> Conn<'r> {
         self.callbacks.push(Box::new(callback));
     }
 
+    /// Copies the provided `path` onto the end of the `Conn` response
+    /// buffer. This also finds the mime type and inserts a content-type
+    /// header into the response for you.
+    ///
     pub fn send_file<P: AsRef<Path>>(&mut self, _status: u16, path: P) 
     where P: ::std::fmt::Debug {
         match File::open(&path) {
@@ -85,6 +90,11 @@ impl<'r> Conn<'r> {
             Ok(ref mut file) => {
                 self.status_code = 200;
                 self.state = RespState::Sent;
+
+                let mime_type = guess_mime_type(path);
+                let mime_str  = format!("{}", mime_type);
+                self.headers.insert("content-type".to_string(), vec![mime_str]);
+
                 io::copy(file, &mut self.resp)
                     .expect("could not copy file to response buffer");
             },

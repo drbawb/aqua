@@ -6,6 +6,7 @@ authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
 [dependencies]
 conduit = "0.8.1"
 log = "0.3"
+mime_guess = "1.8"
 multipart = { version = "0.9", default_features = false, features = ["server"] }
 regex = "0.1.80"
 url = "1.4"
