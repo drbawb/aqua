@@ -5,8 +5,7 @@ extern crate dotenv;
 extern crate env_logger;
 
 use aqua::{controllers, util};
-use aqua_web::mw::{MultipartParser, Router};
-use aqua_web::plug;
+use aqua_web::{mw, plug};
 use conduit_hyper::Server;
 use dotenv::dotenv;
 
@@ -21,7 +20,7 @@ fn main() {
         .then(util::template::TemplateMiddleware::new());
 
     // the main entry point into our application
-    let router = Router::new()
+    let router = mw::Router::new()
         .get("/dash",                 controllers::dash::index)
         .get("/tags/{schema}/{name}", controllers::dash::show_tags)
         .get("/entries/{id}",         controllers::entries::show_id)
@@ -33,7 +32,7 @@ fn main() {
     let endpoint = plug::Pipeline::new()
         .then(util::timer::plug)
         .then(util::try_file::TryFileMiddleware)
-        .then(MultipartParser)
+        .then(mw::MultipartParser)
         .then(extensions)
         .then(router);
 

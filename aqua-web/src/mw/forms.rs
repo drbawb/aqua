@@ -40,6 +40,7 @@ impl Plug for MultipartParser {
                 // TODO: when is this storage purged?
                 let entry_dir = match mp_data.save_all() {
                     SaveResult::Full(entries) => {
+                        // coalesce files and fields into a single map
                         for (key,val) in entries.fields {
                             mp_files.insert(key, FormField::Value(val));
                         }
@@ -48,6 +49,9 @@ impl Plug for MultipartParser {
                             mp_files.insert(key, FormField::File(val));
                         }
 
+                        // NOTE: return the tempdir, since it deletes on drop!
+                        //       (hot potato!!!)
+                        //
                         entries.dir
                     },
 

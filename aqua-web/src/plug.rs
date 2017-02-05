@@ -46,7 +46,7 @@ pub struct Conn<'r> {
     resp: Cursor<Vec<u8>>,
     
     req: &'r mut Request,
-    callbacks: Vec<Box<Plug>>,
+    callbacks: Option<Vec<Box<Plug>>>,
 }
 
 impl<'r> Conn<'r> {
@@ -59,7 +59,7 @@ impl<'r> Conn<'r> {
            
             is_halting:  false,
             req:         req,
-            callbacks:   vec![],
+            callbacks:   Some(vec![]),
         }
     }
 
@@ -76,7 +76,10 @@ impl<'r> Conn<'r> {
     /// individual callback is fired.
     ///
     pub fn register_before_send<P: Plug>(&mut self, callback: P) {
-        self.callbacks.push(Box::new(callback));
+        match self.callbacks {
+            Some(ref mut callbacks) => callbacks.push(Box::new(callback)),
+            None => panic!("callbacks already fired"),
+        }
     }
 
     /// Copies the provided `path` onto the end of the `Conn` response
@@ -178,9 +181,7 @@ impl Handler for Pipeline {
         //       callback at the very end; simulating callstack unwinding.
         //
         // TODO: mem::swap dance to take ownership of the callbacks
-        let mut callbacks = vec![];
-        ::std::mem::swap(&mut conn.callbacks, &mut callbacks);
-        for callback in callbacks.iter().rev() { callback.call(&mut conn); }
+        for callback in conn.callbacks.take().unwrap() { callback.call(&mut conn); }
 
         // TODO: finish other response modes
         // generate the response based on what the user asked us to do
