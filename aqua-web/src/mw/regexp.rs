@@ -71,7 +71,7 @@ impl Expression {
 		};
 
 		regex_string.push_str(&format!("{}$", trailing_chars)[..]);
-		println!("generated route regex: {}", regex_string);
+		debug!("generated route regex: {}", regex_string);
 
 		Ok(Expression {
 			names: names,
@@ -96,7 +96,7 @@ impl Expression {
 			Some(captures) => {
 				for idx in 0..self.names.len() {
 					if let Some(binding) = captures.at(idx+1) {
-						println!("got capture {}", binding);
+						debug!("got route capture {}", binding);
 						results.insert(self.names[idx].clone(), binding.to_owned());
 					};
 				}

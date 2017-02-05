@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use plug::{Conn, Plug};
 
-use multipart::server::{Multipart, MultipartField, SaveResult};
+use multipart::server::{Multipart, SaveResult};
 pub use multipart::server::{SaveDir, SavedFile};
 
 pub enum FormField {
@@ -31,8 +31,8 @@ impl Plug for MultipartParser {
                 
 
         if let Some(boundary) = boundary {
-            info!("found multipart boundary, HANDLE IT!");
-            let mut mp_files = { // borrow request mutably to read body
+            debug!("found multipart boundary, HANDLE IT!");
+            let mp_files = { // borrow request mutably to read body
                 let mut mp_data = Multipart::with_body(conn.req_mut().body(), boundary);
                 let mut mp_files = HashMap::new();
 

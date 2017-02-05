@@ -59,10 +59,7 @@ impl Plug for Router {
     fn call(&self, conn: &mut Conn) {
  		let routes = self.routes.read().unwrap();
  		let handler = routes.get(&conn.req_mut().method()).and_then(|routes| {
- 			println!("method found...");
- 
  			routes.iter().find(|route| {
- 				println!("checking route... {}", conn.req().path());
  				route.matches(&conn.req().path()[..])
  			})
  		});

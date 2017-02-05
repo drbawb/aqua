@@ -14,7 +14,6 @@ type HeaderMap = HashMap<String, Vec<String>>;
 #[derive(Debug,Eq,PartialEq)]
 enum RespState {
     Waiting,
-    Chunked,
     Sent,
 }
 
@@ -86,11 +85,12 @@ impl<'r> Conn<'r> {
             Ok(ref mut file) => {
                 self.status_code = 200;
                 self.state = RespState::Sent;
-                io::copy(file, &mut self.resp);
+                io::copy(file, &mut self.resp)
+                    .expect("could not copy file to response buffer");
             },
 
             Err(msg) => {
-                warn!("Could not open file {:?} for response", path);
+                warn!("Could not open file {:?} for response because {}", path, msg);
                 self.resp.write(b"unexpected server error: could not open file.")
                     .expect("could not write resp to buffer");
 
@@ -163,16 +163,19 @@ impl Handler for Pipeline {
             if conn.is_halting { break; }
         }
 
+        // NOTE: iterates over callbacks in reverse order they were added
+        //       this means that the earliest entry in the stack runs it's
+        //       callback at the very end; simulating callstack unwinding.
+        //
         // TODO: mem::swap dance to take ownership of the callbacks
         let mut callbacks = vec![];
         ::std::mem::swap(&mut conn.callbacks, &mut callbacks);
-        for callback in &callbacks { callback.call(&mut conn); }
+        for callback in callbacks.iter().rev() { callback.call(&mut conn); }
 
         // TODO: finish other response modes
         // generate the response based on what the user asked us to do
         match conn.state {
             RespState::Waiting => panic!("pipeline did not generate a response?"),
-            RespState::Chunked => panic!("chunked responses not supported yet"),
             RespState::Sent => {
                 conn.resp.set_position(0);
                 let response = Response {

@@ -2,8 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use controllers::prelude::*;
-use models;
+use models::{self, queries};
 use views;
 
 use aqua_web::plug;
@@ -28,7 +27,7 @@ struct EntryListView {
 /// Does the thing, wins the points ...
 pub fn index(conn: &mut plug::Conn) {
     // db lulz
-    let entries = ::models::queries::all_entries(conn);
+    let entries = queries::all_entries(conn);
     println!("got entries: {:?}", entries);
 
     // render template
@@ -41,7 +40,6 @@ pub fn index(conn: &mut plug::Conn) {
 /// Fetches a list of images matching the named tag
 /// `GET /tags/{name}`
 pub fn show_tags(conn: &mut plug::Conn) {
-    use models::{queries, Entry};
 
     let tag_name = { conn.find::<MatchContext>()
         .expect("could not read route params")
@@ -63,8 +61,6 @@ pub fn show_tags(conn: &mut plug::Conn) {
 /// Fetch the file for a given entry ID
 /// `GET /show/{id}`
 pub fn show_id(conn: &mut plug::Conn) {
-    use models::{queries, Entry};
-
     let file_id: i64 = conn.find::<MatchContext>()
         .expect("could not read route params")
         .get("id")
