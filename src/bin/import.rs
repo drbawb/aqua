@@ -51,6 +51,23 @@ pub fn establish_connection() -> PgConnection {
         .expect(&format!("Error connecting to {}", database_url))
 }
 
+#[allow(doc_markdown)] // nuu~ clippy, SQLite is not a type v(T.T)v
+/// This application is used to import tags from SQLite databases generated
+/// by the [Hydrus Network][hgit] image client.
+///
+/// This application puts most data in separate databases, hindering our
+/// ability to have SQLite perform joins. So most of the time is spent
+/// building application side indexes.
+///
+/// First we read the `current_mappings` table to get a list of mappings the
+/// end-user established. Then we look up the tags & digests for each mapping.
+/// One important transformation is that we consider tags in different namespaces
+/// to be *distinct entries*, instead of having a separate table for namespaces.
+///
+/// After this is done we go through the mappings and create appropriate entries
+/// into the `aqua` database; at the moment this panicks if it inserts a duplicate.
+///
+/// [hgit]: https://hydrusnetwork.github.io/hydrus/
 fn main() {
     dotenv::dotenv().expect("must provide .env file, see README (TODO: haha jk)");
     env_logger::init().expect("could not initialize console logging");
@@ -175,7 +192,7 @@ fn main() {
     }
 
     // load tags
-    for (_tag_id, otag) in &tags {
+    for otag in tags.values() {
         // info!("tag({:?}) => {:?}", tag_id, tag);
         let new_tag = NewTag { name: &otag.name, schema: Some(&otag.schema) };
         let tag: models::Tag = diesel::insert(&new_tag)
@@ -186,9 +203,9 @@ fn main() {
     
     // load mappings
     for mapping in &mappings {
-        let nentry = aqua_entry_ids.get(&mapping.hash_id).unwrap();
-        let ntag   = aqua_tag_ids.get(&(mapping.ns_id, mapping.tag_id)).unwrap();
-        let link   = NewEntryTag { tag_id: *ntag, entry_id: *nentry };
+        let nentry = aqua_entry_ids[&mapping.hash_id];
+        let ntag   = aqua_tag_ids[&(mapping.ns_id, mapping.tag_id)];
+        let link   = NewEntryTag { tag_id: ntag, entry_id: nentry };
 
         let _entry: models::EntryTag = diesel::insert(&link)
             .into(schema::entries_tags::table)
