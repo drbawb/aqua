@@ -175,7 +175,7 @@ fn main() {
     }
 
     // load tags
-    for (tag_id, otag) in &tags {
+    for (_tag_id, otag) in &tags {
         // info!("tag({:?}) => {:?}", tag_id, tag);
         let new_tag = NewTag { name: &otag.name, schema: Some(&otag.schema) };
         let tag: models::Tag = diesel::insert(&new_tag)
@@ -190,7 +190,7 @@ fn main() {
         let ntag   = aqua_tag_ids.get(&(mapping.ns_id, mapping.tag_id)).unwrap();
         let link   = NewEntryTag { tag_id: *ntag, entry_id: *nentry };
 
-        let entry: models::EntryTag = diesel::insert(&link)
+        let _entry: models::EntryTag = diesel::insert(&link)
             .into(schema::entries_tags::table)
             .get_result(&pg_conn).ok().unwrap();
     }
