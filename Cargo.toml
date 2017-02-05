@@ -15,22 +15,22 @@ doc = false
 
 [dependencies]
 aqua-web = { version = "0.1.0", path = "aqua-web" }
-conduit = "*"
+conduit = "0.8"
 diesel = { version = "0.10", features = ["postgres"] }
 diesel_codegen = { version = "0.10", features = ["postgres"] }
 dotenv = "0.8"
 env_logger = "0.3"
 glob = "0.2"
 log = "0.3"
-handlebars = { version = "*", features = ["serde_type"] }
-mime_guess = "*"
-r2d2 = "*"
-r2d2-diesel = "*"
-rust-crypto = "*"
+handlebars = { version = "0.25", features = ["serde_type"] }
+mime_guess = "1.8"
+r2d2 = "0.7"
+r2d2-diesel = "0.10"
+rust-crypto = "0.2"
 rusqlite = { version = "0.9", features = ["bundled"] }
-serde = "*"
-serde_derive = "*"
-serde_json = "*"
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
 time = "0.1"
 
 [dependencies.conduit-hyper]
