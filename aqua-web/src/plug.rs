@@ -63,6 +63,10 @@ impl<'r> Conn<'r> {
         }
     }
 
+    pub fn find<T: Sync + Send + 'static>(&self) -> Option<&T> {
+        self.req().extensions().find::<T>()
+    }
+
     /// Halts the current pipeline, further plugs will not be run.
     pub fn halt(&mut self) { self.is_halting = true; }
 

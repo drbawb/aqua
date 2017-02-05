@@ -2,16 +2,23 @@ use std::env;
 
 use aqua_web::plug;
 use diesel::pg::PgConnection;
-use r2d2::{Config, Pool};
+use r2d2::{Config, Pool, PooledConnection};
 use r2d2_diesel::ConnectionManager;
 
 
 /// The extension registry type of the database pool
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
+pub type DbConn = PooledConnection<ConnectionManager<PgConnection>>;
 
 /// Injects a thread-safe reference to a database connection pool into the extensions
 /// for each request handled by a chain which includes this middleware.
 pub struct DbMiddleware { pool: DbPool }
+
+pub fn require_db_conn(conn: &plug::Conn) -> DbConn {
+    conn.find::<DbPool>()
+        .and_then(|pool| pool.get().ok())
+        .expect("could not load db pooling extension")
+}
 
 impl DbMiddleware {
     pub fn new() -> Self {
@@ -21,7 +28,6 @@ impl DbMiddleware {
         let manager = ConnectionManager::<PgConnection>::new(db_url);
         let pool    = Pool::new(config, manager)
             .expect("could not setup db pool");
-
 
         DbMiddleware { pool: pool }
     }
