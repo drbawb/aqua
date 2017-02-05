@@ -1,6 +1,7 @@
 use std::borrow::ToOwned;
 use std::collections::HashMap;
 use regex::Regex;
+use url::percent_encoding;
 
 /// A route `Expression` is a regular expression compiled from a
 /// "template string" in which portions of a URL path are bound to
@@ -97,7 +98,10 @@ impl Expression {
 				for idx in 0..self.names.len() {
 					if let Some(binding) = captures.at(idx+1) {
 						debug!("got route capture {}", binding);
-						results.insert(self.names[idx].clone(), binding.to_owned());
+                        let decoded_capture = percent_encoding::percent_decode(binding.as_bytes())
+                                .decode_utf8_lossy();
+
+						results.insert(self.names[idx].clone(), decoded_capture.into_owned());
 					};
 				}
 			},

@@ -8,3 +8,4 @@ conduit = "0.8.1"
 log = "*"
 multipart = { version = "0.9", default_features = false, features = ["server"] }
 regex = "0.1.80"
+url = "1.4"
