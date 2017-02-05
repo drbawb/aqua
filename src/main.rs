@@ -22,10 +22,10 @@ fn main() {
 
     // the main entry point into our application
     let router = Router::new()
-        .get("/dash",            controllers::dash::index)
-        .get("/tags/{name}",     controllers::dash::show_tags)
-        .get("/entries/{id}",    controllers::dash::show_id)
-        .post("/entries/upload", controllers::dash::submit);
+        .get("/dash",                 controllers::dash::index)
+        .get("/tags/{schema}/{name}", controllers::dash::show_tags)
+        .get("/entries/{id}",         controllers::dash::show_id)
+        .post("/entries/upload",      controllers::dash::submit);
 
     // the endpoint provides basic HTTP massaging before our router is invoked
     // with the current request data ...

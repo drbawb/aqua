@@ -86,11 +86,12 @@ pub mod queries {
     }
 
 
-    pub fn find_tag(conn: &plug::Conn, tag_name: &str) -> Option<Tag> {
+    pub fn find_tag(conn: &plug::Conn, schema_name: &str, tag_name: &str) -> Option<Tag> {
         use schema::tags::dsl::*;
 
         let conn = require_db_conn(conn);
         tags.filter(name.eq(tag_name))
+            .filter(schema.eq(schema_name))
             .get_result(&*conn)
             .ok()
     } 

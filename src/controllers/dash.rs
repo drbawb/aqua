@@ -40,16 +40,24 @@ pub fn index(conn: &mut plug::Conn) {
 /// Fetches a list of images matching the named tag
 /// `GET /tags/{name}`
 pub fn show_tags(conn: &mut plug::Conn) {
+    let tag_name = { 
+        conn.find::<MatchContext>()
+            .expect("could not read route params")
+            .get("name")
+            .expect("could not find entry ID in route params")
+            .clone()
+    };
 
-    let tag_name = { conn.find::<MatchContext>()
-        .expect("could not read route params")
-        .get("name")
-        .expect("could not find entry ID in route params")
-        .clone()
+    let schema_name = { 
+        conn.find::<MatchContext>()
+            .expect("could not read route params")
+            .get("schema")
+            .expect("could not find entry ID in route params")
+            .clone()
     };
 
     // load entry pointers for this tag
-    let results = queries::find_tag(conn, &tag_name)
+    let results = queries::find_tag(conn, &schema_name, &tag_name)
         .and_then(|tag| queries::find_entries_for(conn, tag.id))
         .unwrap_or(vec![]);
 
