@@ -51,7 +51,7 @@ pub fn establish_connection() -> PgConnection {
         .expect(&format!("Error connecting to {}", database_url))
 }
 
-#[allow(doc_markdown)] // nuu~ clippy, SQLite is not a type v(T.T)v
+#[cfg_attr(feature = "cargo-clippy", allow(doc_markdown))]
 /// This application is used to import tags from SQLite databases generated
 /// by the [Hydrus Network][hgit] image client.
 ///
