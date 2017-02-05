@@ -40,7 +40,7 @@ fn extract_file(form: &mut MultipartForm, field: &str) -> Option<SavedFile> {
 
 pub fn submit(conn: &mut plug::Conn) {
 
-    // 
+    // TODO: simpler way to get extensions
     let mut form_fields = { conn.req_mut().mut_extensions().pop::<MultipartForm>() };
     let digest = form_fields.as_mut().and_then(|form| {
         extract_file(form, "upload").and_then(|file| hash_file(file.path))

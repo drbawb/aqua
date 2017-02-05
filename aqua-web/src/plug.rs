@@ -136,8 +136,9 @@ impl Pipeline {
     }
 
     /// Connects a plug to the end of the pipeline
-    pub fn register<P: Plug>(&mut self, plug: P) { 
+    pub fn then<P: Plug>(mut self, plug: P) -> Self { 
         self.stack.push(Box::new(plug));
+        self
     }
 }
 

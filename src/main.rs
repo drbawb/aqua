@@ -36,23 +36,23 @@ fn main() {
     env_logger::init().expect("could not initialize console logging");
 
     // these are application extensions which our controllers expect to be present
-    let mut extensions = plug::Pipeline::new();
-    extensions.register(util::db::DbMiddleware::new());
-    extensions.register(util::template::TemplateMiddleware::new());
+    let extensions = plug::Pipeline::new()
+        .then(util::db::DbMiddleware::new())
+        .then(util::template::TemplateMiddleware::new());
 
     // the main entry point into our application
-    let mut router = Router::new();
-    router.add_route(Method::Get, "/dash", controllers::dash::index);
-    router.add_route(Method::Post, "/entries/upload", controllers::dash::submit);
+    let mut router = Router::new()
+        .get("/dash",            controllers::dash::index)
+        .post("/entries/upload", controllers::dash::submit);
 
     // the endpoint provides basic HTTP massaging before our router is invoked
     // with the current request data ...
-    let mut endpoint = plug::Pipeline::new();
-    endpoint.register(util::timer::plug);
-    endpoint.register(util::try_file::TryFileMiddleware);
-    endpoint.register(MultipartParser);
-    endpoint.register(extensions);
-    endpoint.register(router);
+    let endpoint = plug::Pipeline::new()
+        .then(util::timer::plug)
+        .then(util::try_file::TryFileMiddleware)
+        .then(MultipartParser)
+        .then(extensions)
+        .then(router);
 
     Server::http("0.0.0.0:3000")
         .expect("could not start http server")

@@ -32,7 +32,8 @@ impl Router {
 	pub fn add_route<P: Plug>(&mut self,  method:  Method, pattern: &str, handler: P) {
 	
 		// add it to our method-routes.
-		let mut routes = self.routes.write().unwrap();
+		let mut routes = self.routes.write()
+            .expect("could not lock routing table for entry");
 		let route = Route::new(pattern, handler);
 		let mut route_list = match routes.entry(method) {
 			Entry::Vacant(entry)   => entry.insert(Vec::new()),
@@ -41,6 +42,17 @@ impl Router {
 
 		route_list.push(route);
 	}
+
+    // TODO: macro to impl http verbs
+    pub fn get<P: Plug>(mut self, pattern: &str, handler: P) -> Self {
+        self.add_route(Method::Get, pattern, handler);
+        self
+    }
+
+    pub fn post<P: Plug>(mut self, pattern: &str, handler: P) -> Self {
+        self.add_route(Method::Post, pattern, handler);
+        self
+    }
 }
 
 impl Plug for Router {
