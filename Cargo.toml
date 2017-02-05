@@ -3,6 +3,16 @@ name = "aqua"
 version = "0.1.0"
 authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
 
+[workspace]
+
+[[bin]]
+name = "aqua"
+
+[[bin]]
+name = "import"
+path = "src/bin/import.rs"
+doc = false
+
 [dependencies]
 aqua-web = { version = "0.1.0", path = "aqua-web" }
 conduit = "*"
@@ -10,6 +20,7 @@ diesel = { version = "0.10", features = ["postgres"] }
 diesel_codegen = { version = "0.10", features = ["postgres"] }
 dotenv = "0.8"
 env_logger = "0.3"
+glob = "0.2"
 log = "0.3"
 handlebars = { version = "*", features = ["serde_type"] }
 mime = "*"
@@ -17,6 +28,7 @@ mime_guess = "*"
 r2d2 = "*"
 r2d2-diesel = "*"
 rust-crypto = "*"
+rusqlite = { version = "0.9", features = ["bundled"] }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
