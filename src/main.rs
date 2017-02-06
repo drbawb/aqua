@@ -23,8 +23,8 @@ fn main() {
     let router = mw::Router::new()
         .get("/dash",                 controllers::dash::index)
         .get("/tags/{schema}/{name}", controllers::dash::show_tags)
-        .get("/entries/{id}",         controllers::entries::show_id)
-        .get("/entries/thumb/{id}",   controllers::entries::thumb_id)
+        .get("/entries/{id}",         controllers::entries::show)
+        .get("/entries/thumb/{id}",   controllers::entries::show_thumb)
         .post("/entries/upload",      controllers::entries::submit);
 
     // the endpoint provides basic HTTP massaging before our router is invoked
