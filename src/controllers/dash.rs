@@ -1,5 +1,5 @@
 use aqua_web::plug;
-use aqua_web::mw::route::MatchContext;
+use aqua_web::mw::router::Router;
 
 use models::{self, queries};
 use views;
@@ -28,24 +28,14 @@ pub fn index(conn: &mut plug::Conn) {
 }
 
 /// Fetches a list of images matching the named tag
-/// `GET /tags/{name}`
+/// `GET /tags/{schema}/{name}`
 pub fn show_tags(conn: &mut plug::Conn) {
-    let tag_name = { 
-        conn.find::<MatchContext>()
-            .expect("could not read route params")
-            .get("name")
-            .expect("could not find entry ID in route params")
-            .clone()
-    };
+    let tag_name = Router::param::<String>(conn, "name")
+        .expect("missing route param: name");
 
-    let schema_name = { 
-        conn.find::<MatchContext>()
-            .expect("could not read route params")
-            .get("schema")
-            .expect("could not find entry ID in route params")
-            .clone()
-    };
-
+    let schema_name = Router::param::<String>(conn, "schema")
+        .expect("missing route param: schema");
+    
     // load entry pointers for this tag
     let results = queries::find_tag(conn, &schema_name, &tag_name)
         .and_then(|tag| queries::find_entries_for(conn, tag.id))

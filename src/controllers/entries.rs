@@ -6,20 +6,16 @@ use models::queries;
 
 use aqua_web::plug;
 use aqua_web::mw::forms::MultipartForm;
-use aqua_web::mw::route::MatchContext;
+use aqua_web::mw::router::Router;
 use glob::glob;
 
 static BASE_PATH: &'static str = "/Hydrus Network/db/client_files";
 
 /// Fetch the file for a given entry ID
 /// `GET /show/{id}`
-pub fn show_id(conn: &mut plug::Conn) {
-    let file_id: i64 = conn.find::<MatchContext>()
-        .expect("could not read route params")
-        .get("id")
-        .expect("could not find entry ID in route params")
-        .parse()
-        .expect("entry ID must be a number");
+pub fn show(conn: &mut plug::Conn) {
+    let file_id = Router::param::<i64>(conn, "id")
+        .expect("missing route param: id");
 
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {
@@ -43,13 +39,9 @@ pub fn show_id(conn: &mut plug::Conn) {
     }
 }
 
-pub fn thumb_id(conn: &mut plug::Conn) {
-    let file_id: i64 = conn.find::<MatchContext>()
-        .expect("could not read route params")
-        .get("id")
-        .expect("could not find entry ID in route params")
-        .parse()
-        .expect("entry ID must be a number");
+pub fn show_thumb(conn: &mut plug::Conn) {
+    let file_id = Router::param::<i64>(conn, "id")
+        .expect("missing route param: id");
 
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {

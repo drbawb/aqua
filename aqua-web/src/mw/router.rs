@@ -1,8 +1,9 @@
-use mw::route::Route;
+use mw::route::{MatchContext, Route};
 use plug::{Conn, Plug};
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
+use std::str::FromStr;
 use std::sync::{Arc,RwLock};
 
 use conduit::Method;
@@ -52,6 +53,16 @@ impl Router {
     pub fn post<P: Plug>(mut self, pattern: &str, handler: P) -> Self {
         self.add_route(Method::Post, pattern, handler);
         self
+    }
+
+
+    /// Fetches the route parameter for `name` from the current connection.
+    /// This method will attempt to parse the param string as the requested
+    /// type, returning an error if it cannot accomplish that.
+    pub fn param<T: FromStr>(conn: &Conn, name: &str) -> Option<T> {
+        conn.find::<MatchContext>().ok()
+            .and_then(|matches| matches.get(name))
+            .and_then(|param| param.parse().ok())
     }
 }
 
