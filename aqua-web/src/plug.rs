@@ -63,8 +63,9 @@ impl<'r> Conn<'r> {
         }
     }
 
-    pub fn find<T: Sync + Send + 'static>(&self) -> Option<&T> {
-        self.req().extensions().find::<T>()
+    pub fn find<T: Sync + Send + 'static>(&self) -> ::result::Result<&T> {
+        self.req().extensions().find::<T>().map(|ext| Ok(ext))
+            .unwrap_or(Err(::result::Error::ExtNotAvailable))
     }
 
     /// Halts the current pipeline, further plugs will not be run.

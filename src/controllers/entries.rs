@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::path::PathBuf;
 
 use controllers::prelude::*;
@@ -21,7 +22,7 @@ pub fn show_id(conn: &mut plug::Conn) {
         .expect("entry ID must be a number");
 
     match queries::find_entry(conn, file_id) {
-        Some(entry) => {
+        Ok(entry) => {
             let path_glob = format!("{}/f{}/{}.*",
                                     BASE_PATH,
                                     &entry.hash[0..2],
@@ -38,7 +39,7 @@ pub fn show_id(conn: &mut plug::Conn) {
             // conn.send_resp(200, &path_glob);
         },
 
-        None => conn.send_resp(404, "file not found"),
+        Err(err) => conn.send_resp(404, err.description()),
     }
 }
 
@@ -51,7 +52,7 @@ pub fn thumb_id(conn: &mut plug::Conn) {
         .expect("entry ID must be a number");
 
     match queries::find_entry(conn, file_id) {
-        Some(entry) => {
+        Ok(entry) => {
             let path_glob = format!("{}/t{}/{}.*",
                                     BASE_PATH,
                                     &entry.hash[0..2],
@@ -68,7 +69,7 @@ pub fn thumb_id(conn: &mut plug::Conn) {
             // conn.send_resp(200, &path_glob);
         },
 
-        None => conn.send_resp(404, "file not found"),
+        Err(err) => conn.send_resp(404, err.description()),
     }
 }
 
