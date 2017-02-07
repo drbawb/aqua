@@ -185,10 +185,14 @@ fn main() {
         let hash: String = hash.join("");
 
         let entry = NewEntry { hash: &hash, mime: None };
-        let entry: Entry = diesel::insert(&entry)
+        let entry: Result<Entry, diesel::result::Error> = diesel::insert(&entry)
             .into(schema::entries::table)
-            .get_result(&pg_conn).ok().unwrap();
-        aqua_entry_ids.insert(hash_id, entry.id);
+            .get_result(&pg_conn);
+
+        match entry {
+            Ok(entry) => { aqua_entry_ids.insert(hash_id, entry.id); },
+            Err(msg) => warn!("err inserting entry: {:?}", msg),
+        }
     }
 
     // load tags

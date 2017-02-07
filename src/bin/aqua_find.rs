@@ -8,7 +8,6 @@ extern crate glob;
 
 use std::env;
 use std::fs;
-use std::os;
 use std::path::PathBuf;
 
 use aqua::models::{Entry, EntryTag};
