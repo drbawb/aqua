@@ -1,6 +1,6 @@
 use schema::{entries_tags, entries, tags};
 
-#[derive(Debug, Queryable)]
+#[derive(Debug, Queryable, Serialize)]
 pub struct Entry {
     pub id:   i64,
     pub hash: String,

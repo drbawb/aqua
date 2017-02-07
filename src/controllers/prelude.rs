@@ -1,6 +1,7 @@
 pub use std::io::Cursor;
 pub use conduit::{Request, Response, WriteBody};
 
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -29,12 +30,12 @@ pub fn extract_file(form: &mut MultipartForm, field: &str) -> Option<SavedFile> 
     }
 }
 
-pub fn hash_file<P: AsRef<Path>>(path: P) -> Option<String> {
+pub fn hash_file(path: &Path) -> Option<String> {
     println!("file was pretty coo, gonna hash it");
     let mut buf = vec![];
 
-    info!("path exists? {}",  (path.as_ref()).exists());
-    info!("path is file? {}", (path.as_ref()).is_file());
+    info!("path exists? {}",  (path.borrow()).exists());
+    info!("path is file? {}", (path.borrow()).is_file());
 
     File::open(path)
          .and_then(|mut file| { file.read_to_end(&mut buf) })

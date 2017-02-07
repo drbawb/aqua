@@ -11,6 +11,7 @@ extern crate handlebars;
 extern crate mime_guess;
 extern crate r2d2;
 extern crate r2d2_diesel;
+extern crate serde;
 extern crate serde_json;
 extern crate time;
 
