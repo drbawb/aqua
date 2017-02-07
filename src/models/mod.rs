@@ -58,6 +58,16 @@ pub mod queries {
         Ok(entry)
     }
 
+    pub fn find_entry_by_hash(conn: &plug::Conn, entry_hash: &str) -> db::Result<Option<Entry>> {
+        use schema::entries::dsl::*;
+        let conn = db::fetch_conn(conn)?;
+        let entry = entries.filter(hash.eq(entry_hash))
+            .get_result(&*conn)
+            .optional()?;
+
+        Ok(entry)
+    }
+
     // TODO: join these through many<->many
     pub fn find_entries_for(conn: &plug::Conn, dest_tag_id: i64) -> db::Result<Vec<EntryTag>> {
         use schema::entries_tags::dsl::*;

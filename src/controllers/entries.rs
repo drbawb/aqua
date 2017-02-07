@@ -65,6 +65,15 @@ pub fn show_thumb(conn: &mut plug::Conn) {
     }
 }
 
+/// `POST /entries/upload`
+///
+/// Returns a `models::Entry` as JSON or an HTTP 500 error on failure.
+/// Expects a multipart form containing a file payload in the field `upload`.
+/// This payload is extracted and converted to a SHA-256 digest.
+///
+/// If the entry already exists it is returned immediately, otherwise it is
+/// moved to the content addressable storage pool and the entry is created.
+///
 pub fn submit(conn: &mut plug::Conn) {
     use models::{queries, NewEntry}; 
 
@@ -74,15 +83,17 @@ pub fn submit(conn: &mut plug::Conn) {
         extract_file(form, "upload").and_then(|file| hash_file(file.path))
     });
 
-    if let Some(digest) = digest {
-        let entry = queries::find_or_insert(conn, NewEntry { hash: &digest, mime: None });
-        conn.send_resp(200, &format!("nice file fam: {:?}", entry))
-    } else { conn.send_resp(500, "yo where is my file fam?") }
+    let digest = match digest {
+        None => { conn.send_resp(500, "file upload missing?"); return },
+        Some(digest) => digest,
+    };
 
-    // store the digest (if it does not exist)
+    info!("got file digest: {}", digest);
+    match queries::find_entry_by_hash(conn, &digest) {
+        Ok(Some(entry)) => conn.send_resp(200, "TODO: serialize entry"),
+        Ok(None)        => conn.send_resp(200, "TODO: write entry"),
 
-    // save the file (if new)
-    // respond with (hash, tags)
-
+        Err(msg) => conn.send_resp(500, &format!("could not load entry[{}]: {}", digest, msg)),
+    };
 
 }
