@@ -18,7 +18,7 @@ struct EntryListView {
 pub fn index(conn: &mut plug::Conn) {
     // db lulz
     let entries = queries::all_entries(conn);
-    println!("got entries: {:?}", entries);
+    info!("got entries: {:?}", entries);
 
     // render template
     let data = Wat { derp: format!("entry => {:?}", entries) };

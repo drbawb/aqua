@@ -28,7 +28,7 @@ pub fn show(conn: &mut plug::Conn) {
                                     &entry.hash[0..2],
                                     &entry.hash);
 
-            println!("glob pattern: {}", path_glob);
+            info!("glob pattern: {}", path_glob);
             let paths = glob(&path_glob)
                 .expect("could not parse glob pattern")
                 .map(|res| res.ok().unwrap())
@@ -54,7 +54,7 @@ pub fn show_thumb(conn: &mut plug::Conn) {
                                     &entry.hash[0..2],
                                     &entry.hash);
 
-            println!("glob pattern: {}", path_glob);
+            info!("glob pattern: {}", path_glob);
             let paths = glob(&path_glob)
                 .expect("could not parse glob pattern")
                 .map(|res| res.ok().unwrap())

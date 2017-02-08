@@ -22,7 +22,7 @@ impl plug::Plug for TryFileMiddleware {
             PathBuf::from(format!("./static{}", conn.req().path()))
         };
 
-        println!("checking path: {:?}", try_path);
+        info!("checking path: {:?}", try_path);
         let file_exists = try_path.exists() && try_path.is_file();
         if file_exists {
             let mime_type = mime_guess::guess_mime_type(&try_path);

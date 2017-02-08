@@ -31,7 +31,6 @@ pub fn extract_file(form: &mut MultipartForm, field: &str) -> Option<SavedFile> 
 }
 
 pub fn hash_file(path: &Path) -> Option<String> {
-    println!("file was pretty coo, gonna hash it");
     let mut buf = vec![];
 
     info!("path exists? {}",  (path.borrow()).exists());
@@ -41,7 +40,7 @@ pub fn hash_file(path: &Path) -> Option<String> {
          .and_then(|mut file| { file.read_to_end(&mut buf) })
          .map(|size| {
 
-        println!("read {} bytes", size);
+        debug!("read {} bytes into digest", size);
         let mut digest = Sha256::new();
         digest.input(&mut buf);
         digest.result_str()
