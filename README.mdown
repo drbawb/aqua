@@ -3,6 +3,13 @@
 _Abandon all hope, ye who enter here._  
 This is a brand new project, most things are probably incomplete and/or terribly broken.
 
+**DISCLAIMER: do NOT use this software unless you understand how to maintain
+  frequent backups of a PostgreSQL database as well as backups for a (potentially) 
+  large chunk of your filesystem. This software presently provides no built-in 
+  facilities for maintaining such backups. You must do them yourself.**
+
+[_P.S: you should be doing backups anyways._][jwz]
+
 ---
 
 `aqua` is a program to manage large image libraries using a combination of two ideas:
@@ -27,8 +34,6 @@ These programs will share a common database. At the moment `aqua` requires that 
 to a working PostgreSQL database. _(This database is only used for storing metadata about the repository,
 as such it does not necessarily need to be on the same machine which hosts the media files themselves.)_
 
-
-
 ## Getting Started
 
 This is a Rust project, you will need the following pre-requisites:
@@ -38,33 +43,21 @@ This is a Rust project, you will need the following pre-requisites:
 - `diesel_cli` for setting up the database: `$ cargo install diesel_cli`
   - See: `BUILD-INSTR` for information about setting up diesel on 
     various operating systems.
+- a `.env` file, copy `sample.env` to `.env` and edit it to suit your environment.
+
 
 Once these are installed you can build the project as follows:
 
 0. `$ diesel setup` -- this will initialize a brand new database, you only need to do this once
 0. `$ diesel migration run` -- this will apply the most recent patches to your database schema
 0. `$ cargo build` -- this will build the project
-0. `$ cargo run` -- this will (currently) start the web server on port 3000
+0. `$ cargo run --bin aqua` -- this will start the web server on port 3000.
 
 At the moment a few routes that can be used include:
 
 - `GET /tags/{schema}/{name}` lists all entries for a given tag (by name)
 - `GET /entries/{id}` sends the file for a given entry (by id)
+- `GET /entries/{id}` sends a thumbnail for a given entry (by id)
+- `GET /entries/{id}/tags` sends a JSON encoded list of tags for a given entry.
 
-## TODO
-
-Below is a list of things that need to be done, in no particular order:
-
-- [ ] WEB-FW: router should support mounting subrouters 
-- [ ] PERF: HTTP/2 + cache tags for thumbnails
-- [ ] PERF: send/recv local paths for local web browsers (?)
-- [ ] MISC: Need to be able to select content storage directory
-- [ ] MISC: Supporting documentation (code doc, LICENSE file, etc.)
-- [ ] MISC: Ease-of-use / quality-of-life improvements to the `aqua-web` framework
-- [ ] WEB UI: upload images to special "pending review" tag
-- [ ] WEB UI: "pending review" gallery w/ quick tagging facilities
-- [ ] WEB UI: search images / gallery page
-- [ ] WEB UI: modify tags for any image
-- [ ] WEB UI: basic JSON query frontend to the tag db
-- [ ] CLI: utility to query tag database and create a "virtual directory" of search results via symbolic links
-- [ ] CLI: OS independent folder watching to "pending review" tag
+[jwz]: https://www.jwz.org/doc/backups.html
