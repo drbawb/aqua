@@ -13,6 +13,18 @@ use aqua_web::mw::router::Router;
 use glob::glob;
 use serde_json;
 
+fn glob_for_category(category: &str, digest: &str) -> String {
+    // TODO: assert digest is really a digest
+    // TODO: assert category is really a category
+
+    PathBuf::from(env::var("CONTENT_STORE").unwrap())
+        .join(format!("{}{}", category, &digest[..2]))
+        .join(&digest)
+        .with_extension("*")
+        .to_string_lossy()
+        .into_owned()
+}
+
 /// Fetch the file for a given entry ID
 /// `GET /show/{id}`
 pub fn show(conn: &mut plug::Conn) {
@@ -21,13 +33,10 @@ pub fn show(conn: &mut plug::Conn) {
 
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {
-            let path_glob = format!("{}/f{}/{}.*",
-                                    env::var("CONTENT_STORE").unwrap(),
-                                    &entry.hash[0..2],
-                                    &entry.hash);
+            let glob_pattern = glob_for_category("f", &entry.hash);
+            info!("glob pattern: {}", glob_pattern);
 
-            info!("glob pattern: {}", path_glob);
-            let paths = glob(&path_glob)
+            let paths = glob(&glob_pattern)
                 .expect("could not parse glob pattern")
                 .map(|res| res.ok().unwrap())
                 .collect::<Vec<PathBuf>>();
@@ -47,13 +56,10 @@ pub fn show_thumb(conn: &mut plug::Conn) {
 
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {
-            let path_glob = format!("{}/t{}/{}.*",
-                                    env::var("CONTENT_STORE").unwrap(),
-                                    &entry.hash[0..2],
-                                    &entry.hash);
+            let glob_pattern = glob_for_category("t", &entry.hash);
+            info!("glob pattern: {}", glob_pattern);
 
-            info!("glob pattern: {}", path_glob);
-            let paths = glob(&path_glob)
+            let paths = glob(&glob_pattern)
                 .expect("could not parse glob pattern")
                 .map(|res| res.ok().unwrap())
                 .collect::<Vec<PathBuf>>();
