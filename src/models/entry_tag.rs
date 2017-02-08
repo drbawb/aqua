@@ -5,9 +5,9 @@ use schema::entries_tags;
 #[table_name="entries_tags"]
 #[belongs_to(Tag)]
 pub struct EntryTag {
-    pub id:       i64,
     pub tag_id:   i64,
     pub entry_id: i64,
+    pub id:       i64,
 }
 
 #[derive(Insertable)]
