@@ -69,6 +69,19 @@ pub fn show_thumb(conn: &mut plug::Conn) {
     }
 }
 
+/// `GET /entries/{id}/tags`
+///
+/// Gets a view fragment to show and modify the tags.
+pub fn show_entry_tags(conn: &mut plug::Conn) {
+    let entry_id = Router::param::<i64>(conn, "id")
+        .expect("missing route param: id");
+
+    let tags = queries::find_tags_for(conn, entry_id)
+        .expect("could not load tags");
+
+    send_json(conn, tags);
+}
+
 /// `POST /entries/upload`
 ///
 /// Returns a `models::Entry` as JSON or an HTTP 500 error on failure.

@@ -1,55 +1,24 @@
-use schema::{entries_tags, entries, tags};
+mod entry;
+mod entry_tag;
+mod tag;
 
-#[derive(Debug, Queryable, Serialize)]
-pub struct Entry {
-    pub id:   i64,
-    pub hash: String,
-    pub mime: Option<String>,
-}
-
-#[derive(Insertable)]
-#[table_name="entries"]
-pub struct NewEntry<'a> {
-    pub hash: &'a str,
-    pub mime: Option<&'a str>,
-}
-
-#[derive(Debug, Queryable)]
-pub struct Tag {
-    pub id:     i64,
-    pub schema: Option<String>,
-    pub name:   String,
-}
-
-#[derive(Insertable)]
-#[table_name="tags"]
-pub struct NewTag<'a> {
-    pub schema: Option<&'a str>,
-    pub name: &'a str,
-}
-
-#[derive(Debug, Queryable, Serialize)]
-pub struct EntryTag {
-    pub tag_id:   i64,
-    pub entry_id: i64,
-}
-
-#[derive(Insertable)]
-#[table_name="entries_tags"]
-pub struct NewEntryTag {
-    pub tag_id:   i64,
-    pub entry_id: i64,
-}
+pub use self::entry::{Entry, NewEntry};
+pub use self::entry_tag::{EntryTag, NewEntryTag};
+pub use self::tag::{Tag, NewTag};
 
 pub mod queries {
     use aqua_web::plug;
     use diesel;
     use diesel::prelude::*;
-    
-    use models::{Entry, EntryTag, NewEntry, Tag};
+
+    use models::entry::{Entry, NewEntry};
+    use models::entry_tag::EntryTag;
+    use models::tag::Tag;
+
     use util::db;
 
     pub fn find_entry(conn: &plug::Conn, entry_id: i64) -> db::Result<Entry> {
+
         use schema::entries::dsl::*;
         let conn = db::fetch_conn(conn)?;
         let entry = entries.filter(id.eq(entry_id))
@@ -78,6 +47,22 @@ pub mod queries {
             .load(&*conn)?;
 
         Ok(results)
+    }
+
+
+    // TODO: join these through many <-> many
+    pub fn find_tags_for(conn: &plug::Conn, dest_entry_id: i64) -> db::Result<Vec<Tag>> {
+        use schema::{entries_tags, tags};
+
+        let conn = db::fetch_conn(conn)?;
+        let results = entries_tags::table
+            .inner_join(tags::table)
+            .filter(entries_tags::entry_id.eq(dest_entry_id))
+            .load(&*conn)?.into_iter()
+            .map(|(_assoc, tag): (EntryTag, Tag)| { tag })
+            .collect();
+
+        Ok(results)   
     }
 
     pub fn all_entries(conn: &plug::Conn) -> Vec<Entry> {

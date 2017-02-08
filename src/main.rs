@@ -24,7 +24,8 @@ fn main() {
         .get("/dash",                 controllers::dash::index)
         .get("/tags/{schema}/{name}", controllers::dash::show_tags)
         .get("/entries/{id}",         controllers::entries::show)
-        .get("/entries/thumb/{id}",   controllers::entries::show_thumb)
+        .get("/entries/{id}/thumb",   controllers::entries::show_thumb)
+        .get("/entries/{id}/tags",    controllers::entries::show_entry_tags)
         .post("/entries/upload",      controllers::entries::submit);
 
     // the endpoint provides basic HTTP massaging before our router is invoked
