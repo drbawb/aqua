@@ -1,3 +1,4 @@
+use std::env;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::{self, Read};
@@ -12,9 +13,6 @@ use aqua_web::mw::router::Router;
 use glob::glob;
 use serde_json;
 
-static BASE_PATH: &'static str  = "/Hydrus Network/db/client_files";
-static STORE_PATH: &'static str = "/aqua_content_store";
-
 /// Fetch the file for a given entry ID
 /// `GET /show/{id}`
 pub fn show(conn: &mut plug::Conn) {
@@ -24,7 +22,7 @@ pub fn show(conn: &mut plug::Conn) {
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {
             let path_glob = format!("{}/f{}/{}.*",
-                                    BASE_PATH,
+                                    env::var("CONTENT_STORE").unwrap(),
                                     &entry.hash[0..2],
                                     &entry.hash);
 
@@ -50,7 +48,7 @@ pub fn show_thumb(conn: &mut plug::Conn) {
     match queries::find_entry(conn, file_id) {
         Ok(entry) => {
             let path_glob = format!("{}/t{}/{}.*",
-                                    BASE_PATH,
+                                    env::var("CONTENT_STORE").unwrap(),
                                     &entry.hash[0..2],
                                     &entry.hash);
 
@@ -153,7 +151,11 @@ fn write_entry(conn: &mut plug::Conn, digest: String, file: SavedFile) {
 
     // create content aware address for it
     let (content_path, content_name) = match file_ty {
-        Some(file_ty) => (format!("{}/f{}", STORE_PATH, &digest[..2]), format!("{}.{}", &digest[..], file_ty)),
+        Some(file_ty) => (
+            format!("{}/f{}", env::var("CONTENT_STORE").unwrap(), &digest[..2]),
+            format!("{}.{}", &digest[..], file_ty)
+        ),
+
         None => { conn.send_resp(500, "unsupported mime type"); return },
     };
 
