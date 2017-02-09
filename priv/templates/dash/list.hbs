@@ -2,10 +2,18 @@
 
 <div class="list gallery">
     {{#each entries}}
-        <div class="list thumb">
+        <div class="list thumb" data-entry-id="{{this.entry_id}}">
             <a href="/entries/{{this.entry_id}}">
                 <img src="/entries/{{this.entry_id}}/thumb" />
             </a>
         </div>
     {{/each}}
+</div>
+
+<div id="light-box" class="modal-screen-flex">
+    <div class="modal-wrap-flex">
+        <button class="modal-close">Close</button>
+        <div class="img-preview">img preview</div>
+        <div class="img-tags">img tags</div>
+    </div>
 </div>

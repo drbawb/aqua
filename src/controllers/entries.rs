@@ -5,13 +5,19 @@ use std::io::{self, Read};
 use std::path::PathBuf;
 
 use controllers::prelude::*;
-use models::queries;
+use models::{queries, Tag};
+use views;
 
 use aqua_web::plug;
 use aqua_web::mw::forms::{MultipartForm, SavedFile};
 use aqua_web::mw::router::Router;
 use glob::glob;
 use serde_json;
+
+#[derive(Serialize)]
+struct TagView {
+    tags: Vec<Tag>,
+}
 
 fn glob_for_category(category: &str, digest: &str) -> String {
     // TODO: assert digest is really a digest
@@ -83,7 +89,9 @@ pub fn show_entry_tags(conn: &mut plug::Conn) {
     let tags = queries::find_tags_for(conn, entry_id)
         .expect("could not load tags");
 
-    send_json(conn, tags);
+    let data = TagView { tags: tags };
+    let view = views::render(conn.req(), "tag/_panel", &data);
+    conn.send_resp(200, &view);
 }
 
 /// `POST /entries/upload`
