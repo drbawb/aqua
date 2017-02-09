@@ -37,6 +37,7 @@ serde = "0.9"
 serde_derive = "0.9"
 serde_json = "0.9"
 time = "0.1"
+walkdir = "1.0"
 
 [dependencies.conduit-hyper]
 git = "https://github.com/sfackler/conduit-hyper"
