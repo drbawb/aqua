@@ -14,7 +14,6 @@ extern crate r2d2_diesel;
 extern crate serde;
 extern crate serde_json;
 extern crate time;
-extern crate walkdir;
 
 pub mod controllers;
 pub mod models;
