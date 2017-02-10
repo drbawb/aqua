@@ -10,6 +10,26 @@ header {
   border-radius: 10px;
 }
 
+.btn {
+    display: inline-block;
+    height: 50px;
+    min-width: 75px;
+    padding: 25px 5px 0px 5px;
+    border-radius: 5px;
+    background-color: #909090;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background-color: #ff0000;
+}
+
+
+// specific components
 #io-box {
     margin-bottom: 15px;
 }
@@ -30,6 +50,18 @@ header {
 
 #dropbox.hover {
     background-color: #909090;
+}
+
+#light-box .modal-close {
+    float: left;
+}
+
+#light-box .modal-image {
+    float: right;
+}
+
+#light-box .button-bar {
+    margin-bottom: 20px;
 }
 
 .list.gallery {
@@ -66,7 +98,10 @@ header {
     min-width: 300px;
     min-height: 300px;
     max-width: 80vh;
-    background-color: #00ff00;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 20px #333;
+    background-color: #bababa;
     display: block;
 }
 
@@ -76,3 +111,4 @@ header {
     flex-direction: row;
     justify-content: space-between;
 }
+

@@ -67,6 +67,7 @@ var Gallery = (function() {
     
     let lightbox      = document.querySelector("#light-box");
     let lightboxClose = lightbox.querySelector(".modal-close");
+    let lightboxFull  = lightbox.querySelector(".modal-image");
     let lightboxImg   = lightbox.querySelector(".img-preview");
     let lightboxTags  = lightbox.querySelector(".img-tags");
    
