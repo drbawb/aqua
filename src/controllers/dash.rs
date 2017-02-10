@@ -5,9 +5,7 @@ use models::{self, queries};
 use views;
 
 #[derive(Serialize)]
-struct Wat {
-    derp: String,
-}
+struct DashView;
 
 #[derive(Serialize)]
 struct EntryListView {
@@ -16,13 +14,8 @@ struct EntryListView {
 
 /// Does the thing, wins the points ...
 pub fn index(conn: &mut plug::Conn) {
-    // db lulz
-    let entries = queries::all_entries(conn);
-    info!("got entries: {:?}", entries);
-
     // render template
-    let data = Wat { derp: format!("entry => {:?}", entries) };
-    let view = views::render_into(conn.req(), "layouts/main", "dash/index", &data);
+    let view = views::render_into(conn.req(), "layouts/main", "dash/index", &DashView);
 
     conn.send_resp(200, &view);
 }
