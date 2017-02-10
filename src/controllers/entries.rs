@@ -1,17 +1,19 @@
 use std::env;
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::{self, Read};
-use std::path::PathBuf;
+use std::io::{self, Read, Write};
+use std::path::{Path, PathBuf};
 
 use controllers::prelude::*;
 use models::{queries, Tag};
 use views;
+use util;
 
 use aqua_web::plug;
 use aqua_web::mw::forms::{MultipartForm, SavedFile};
 use aqua_web::mw::router::Router;
 use glob::glob;
+use image::{self, FilterType, ImageFormat, ImageResult};
 use serde_json;
 
 #[derive(Serialize)]
@@ -104,6 +106,7 @@ pub fn show_entry_tags(conn: &mut plug::Conn) {
 /// moved to the content addressable storage pool and the entry is created.
 ///
 pub fn submit(conn: &mut plug::Conn) {
+    // TODO: handle webm, etc.
     use models::queries;
 
     // TODO: simpler way to get extensions
@@ -159,30 +162,49 @@ fn write_entry(conn: &mut plug::Conn, digest: String, file: SavedFile) {
     // read into temp buffer
     let mut buf = vec![];
     let file_ty = match file.read_to_end(&mut buf) {
-        Ok(_size) => mime_detect(&buf[..]),
+        Ok(_size) => util::mime_detect(&buf[..]),
         Err(_msg) => { conn.send_resp(500, "could not read your upload..."); return },
     };
 
     // create content aware address for it
-    let (content_path, content_name) = match file_ty {
+    let (content_path, thumb_path, content_name, file_ty) = match file_ty {
         Some(file_ty) => (
             format!("{}/f{}", env::var("CONTENT_STORE").unwrap(), &digest[..2]),
-            format!("{}.{}", &digest[..], file_ty)
+            format!("{}/t{}", env::var("CONTENT_STORE").unwrap(), &digest[..2]),
+            format!("{}.{}", &digest[..], file_ty.extension()),
+            file_ty
         ),
 
         None => { conn.send_resp(500, "unsupported mime type"); return },
     };
 
-    // create bucket in content store
-    let dst_path = PathBuf::from(content_path);
-    if let Err(msg) = fs::create_dir_all(&dst_path) {
+
+
+    // create buckets in content store
+    let dst_file_path = PathBuf::from(content_path);
+    if let Err(msg) = fs::create_dir_all(&dst_file_path) {
         warn!("could not create content store bucket: {}", msg);
         conn.send_resp(500, "could not add file to content store");
         return
     }
 
+    let dst_thumb_path = PathBuf::from(thumb_path);
+    if let Err(msg) = fs::create_dir_all(&dst_thumb_path) {
+        warn!("could not create content store bucket: {}", msg);
+        conn.send_resp(500, "could not add file to content store");
+        return
+    }
+
+    // copy thumbnail to bucket
+    let dst_file_name = dst_thumb_path.join(content_name.clone());
+    if let Err(msg) = store_thumbnail(&buf, &dst_file_name, file_ty.format()) {
+        warn!("error storing thumb: {:?}", msg);
+        conn.send_resp(500, "could not add thumb to content store");
+        return
+    }
+
     // copy file to bucket
-    let dst_file_name = dst_path.join(content_name);
+    let dst_file_name = dst_file_path.join(content_name.clone());
     let dst_file_copy = File::create(dst_file_name).and_then(|mut file| {
        io::copy(&mut Cursor::new(buf), &mut file)
     });
@@ -193,28 +215,24 @@ fn write_entry(conn: &mut plug::Conn, digest: String, file: SavedFile) {
         return
     }
 
+    if let Err(msg) = dst_file_copy {
+        warn!("error storing file: {:?}", msg);
+        conn.send_resp(500, "could not add file to content store"); 
+        return
+    }
+
     // store that sucker in the db ...
-    match queries::find_or_insert(conn, NewEntry { hash: &digest, mime: file_ty }) {
+    match queries::find_or_insert(conn, NewEntry { hash: &digest, mime: Some(&file_ty.mime()) }) {
         Some(entry) => send_json(conn, entry),
         None=> conn.send_resp(500, "could not store entry in DB"),
     }
 }
 
-// TODO: moar formats, MOAR!
-fn mime_detect(data: &[u8]) -> Option<&'static str> {
-    // OFFSET   MATCHER     MIME_TYPE
-    let mime_table = vec![
-        (0,     &b"BM"[..],          "bmp"),
-        (0,     &b"GIF87a"[..],      "gif"),
-        (0,     &b"GIF89a"[..],      "gif"),
-        (0,     &b"\xff\xd8"[..],    "jpg"),
-        (0,     &b"\x89PNG"[..],     "png"),
-    ];
-
-    // see if file matches a header descriptor we know...
-    for &(offset, matcher, file_ty) in &mime_table {
-        if data[offset..].starts_with(matcher) { return Some(file_ty) }
-    }
-
-    None
+fn store_thumbnail<P>(in_buf: &[u8], out_path: P, out_fmt: ImageFormat) -> ImageResult<()> 
+where P: AsRef<Path> {
+    let image = image::load_from_memory(in_buf)?;
+    let thumb = image.resize(200, 200, FilterType::Nearest);
+    let mut dest = File::create(out_path)?;
+    thumb.save(&mut dest, out_fmt)?; 
+    dest.flush()?; Ok(())
 }

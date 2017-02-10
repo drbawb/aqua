@@ -58,7 +58,7 @@ var Uploader = (function() {
 
 var Gallery = (function() {
     let thumbs = document.querySelectorAll(".list.thumb");
-    if (!thumbs) {
+    if (thumbs.length == 0) {
         console.log("no gallery!?");
         return;
     }

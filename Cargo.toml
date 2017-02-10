@@ -26,6 +26,7 @@ diesel_codegen = { version = "0.10", features = ["postgres"] }
 dotenv = "0.8"
 env_logger = "0.3"
 glob = "0.2"
+image = "0.10"
 log = "0.3"
 handlebars = { version = "0.25", features = ["serde_type"] }
 mime_guess = "1.8"

@@ -8,6 +8,7 @@ extern crate conduit;
 extern crate crypto;
 extern crate glob;
 extern crate handlebars;
+extern crate image;
 extern crate mime_guess;
 extern crate r2d2;
 extern crate r2d2_diesel;
