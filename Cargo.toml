@@ -25,6 +25,7 @@ doc = false
 
 [dependencies]
 aqua-web = { version = "0.1.0", path = "aqua-web" }
+clap = "2.0"
 conduit = "0.8"
 diesel = { version = "0.10", features = ["postgres"] }
 diesel_codegen = { version = "0.10", features = ["postgres"] }

@@ -24,6 +24,7 @@
 #[macro_use] extern crate log;
 
 extern crate aqua;
+extern crate clap;
 extern crate diesel;
 extern crate dotenv;
 extern crate env_logger;
@@ -33,8 +34,7 @@ extern crate notify;
 use aqua::controllers::prelude::hash_file;
 use aqua::models::{Entry, NewEntry};
 use aqua::schema;
-use aqua::util;
-use diesel::Connection as DieselConnection;
+use clap::{Arg, App};
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
 use dotenv::dotenv;
@@ -46,27 +46,42 @@ use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::time::Duration;
 
-// TODO: not platform independent
-static CONTENT_PATH: &'static str = "/aqua_content_store";
-static DROPBOX_PATH: &'static str = "/booru_box";
-
 fn main() {
     dotenv().expect("must provide .env file, see README (TODO: haha jk)");
     env_logger::init().expect("could not initialize console logging");
+
+    // read command line arguments
+    let matches = App::new("aqua-watch")
+        .version("0.1.0")
+        .author("himechi <hime@localhost>")
+        .about("Watches a directory for new files and moves them to the `aqua` content store.")
+        .arg(Arg::with_name("INPUT")
+             .help("Determines the input directory to be watched.")
+             .required(true)
+             .index(1))
+        .arg(Arg::with_name("OUTPUT")
+             .help("The root of the aqua content store where files will be moved.")
+             .required(true)
+             .index(2))
+        .get_matches();
+
+
+    let dropbox_path  = matches.value_of("INPUT").unwrap();
+    let content_store = matches.value_of("OUTPUT").unwrap();
 
     // setup fs watcher
     let (fs_tx, fs_rx) = channel();
     let mut fs_watcher = watcher(fs_tx, Duration::from_millis(1000))
         .expect("could not create file system watcher!");
 
-    fs_watcher.watch(DROPBOX_PATH, RecursiveMode::NonRecursive)
+    fs_watcher.watch(dropbox_path, RecursiveMode::NonRecursive)
         .expect("could not enroll dropbox in fs events queue");
 
     // process filesystem events ...
     loop {
         match fs_rx.recv() {
             Ok(DebouncedEvent::Create(path)) => {
-                if path.is_file() { handle_new_file(path) }
+                if path.is_file() { handle_new_file(path, content_store) }
                 else { info!("directory created, ignoring ..."); }
             },
             Ok(event) => info!("unhandled evt: {:?}", event),
@@ -75,7 +90,7 @@ fn main() {
     }
 }
 
-fn handle_new_file(path: PathBuf) {
+fn handle_new_file(path: PathBuf, content_store: &str) {
     let digest = hash_file(path.as_path())
         .expect("could not get digest for file (!!!)");
 
@@ -104,7 +119,7 @@ fn handle_new_file(path: PathBuf) {
     let thumb_filename = format!("{}.thumbnail", &digest);
     // store them in content store
 
-    let dest = PathBuf::from(CONTENT_PATH)
+    let dest = PathBuf::from(content_store)
         .join(thumb_bucket)
         .join(thumb_filename);
 
@@ -119,7 +134,7 @@ fn handle_new_file(path: PathBuf) {
     dest_file.flush().expect("could not flush thumbnail to disk");
 
     // move file to content store
-    let dest = PathBuf::from(CONTENT_PATH)
+    let dest = PathBuf::from(content_store)
         .join(file_bucket)
         .join(file_filename);
 
@@ -130,8 +145,7 @@ fn handle_new_file(path: PathBuf) {
     // create entry in database
     let pg_conn = establish_connection();
     let aqua_entry = NewEntry { hash: &digest, mime: Some(file_type.mime()) };
-    let entry = NewEntry { hash: &digest, mime: None };
-    let entry: Result<Entry, diesel::result::Error> = diesel::insert(&entry)
+    let entry: Result<Entry, diesel::result::Error> = diesel::insert(&aqua_entry)
         .into(schema::entries::table)
         .get_result(&pg_conn);
 
