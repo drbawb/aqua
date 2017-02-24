@@ -6,6 +6,7 @@ pub struct Entry {
     pub id:   i64,
     pub hash: String,
     pub mime: Option<String>,
+    pub is_orphan: Option<bool>,
 }
 
 #[derive(Insertable)]

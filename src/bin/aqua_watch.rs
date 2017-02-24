@@ -104,47 +104,42 @@ fn handle_new_file(path: PathBuf, content_store: &str) {
     // read file into memory
     let mut buf = vec![];
     file.read_to_end(&mut buf).expect("could not read file");
-    let file_type = aqua::util::mime_detect(&buf)
-        .expect("could not detect file type!");
 
-    // create in memory thumbnail
-    let image = image::load_from_memory(&buf)
-        .expect("could not read image into memory");
 
-    let thumb = image.resize(200, 200, image::FilterType::Nearest);
+    let (mime_ty, file_ext) = match aqua::util::mime_detect(&buf) {
+        Some(file_ty) => {
+            process_image(content_store, &digest, &buf);
+            (file_ty.mime().to_string(), file_ty.extension().to_string())
+        },
 
+        None => {
+            // TODO: thumbnail a video, properly figure out mimety
+            let file_extension = path.extension()
+                .unwrap()
+                .to_string_lossy();
+
+            (format!("video/{}", file_extension), file_extension.into_owned())
+            
+        },
+    };
+
+    // carve out a bucket based on first byte of SHA256 digest
+    // create the bucket if it does not exist
     let file_bucket    = format!("f{}", &digest[0..2]);
-    let thumb_bucket   = format!("t{}", &digest[0..2]);
-    let file_filename  = format!("{}.{}", &digest, file_type.extension());
-    let thumb_filename = format!("{}.thumbnail", &digest);
-    // store them in content store
-
-    let dest = PathBuf::from(content_store)
-        .join(thumb_bucket)
-        .join(thumb_filename);
-
-    // write thumbnail file
-    fs::create_dir_all(dest.parent().unwrap()).expect("could not create thumbnail bucket");
-    let mut dest_file = File::create(dest)
-        .expect("could not create thumbnail in content store");
-
-    thumb.save(&mut dest_file, image::ImageFormat::JPEG)
-        .expect("could not write to thumbnail in content store"); 
-
-    dest_file.flush().expect("could not flush thumbnail to disk");
+    let file_filename  = format!("{}.{}", &digest, file_ext);
 
     // move file to content store
     let dest = PathBuf::from(content_store)
         .join(file_bucket)
         .join(file_filename);
 
-    fs::create_dir_all(dest.parent().unwrap()).expect("could not create file bucket");
+    fs::create_dir_all(dest.parent().unwrap()).expect("could not create file bucket");   
     fs::rename(path, dest)
         .expect("could not move file to content store");
 
     // create entry in database
     let pg_conn = establish_connection();
-    let aqua_entry = NewEntry { hash: &digest, mime: Some(file_type.mime()) };
+    let aqua_entry = NewEntry { hash: &digest, mime: Some(&mime_ty) };
     let entry: Result<Entry, diesel::result::Error> = diesel::insert(&aqua_entry)
         .into(schema::entries::table)
         .get_result(&pg_conn);
@@ -161,4 +156,31 @@ pub fn establish_connection() -> PgConnection {
 
     PgConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url))
+}
+
+// creates a thumbnail in the content store for the specified digest
+// this expects an `ImageMeta` structure describing the input.
+fn process_image(content_store: &str, digest: &str, buf: &[u8]) {
+    // create in memory thumbnail
+    let image = image::load_from_memory(&buf)
+        .expect("could not read image into memory");
+
+    let thumb = image.resize(200, 200, image::FilterType::Nearest);
+    let thumb_bucket   = format!("t{}", &digest[0..2]);
+    let thumb_filename = format!("{}.thumbnail", &digest);
+    // store them in content store
+
+    let dest = PathBuf::from(content_store)
+        .join(thumb_bucket)
+        .join(thumb_filename);
+
+    // write thumbnail file
+    fs::create_dir_all(dest.parent().unwrap()).expect("could not create thumbnail bucket");
+    let mut dest_file = File::create(dest)
+        .expect("could not create thumbnail in content store");
+
+    thumb.save(&mut dest_file, image::ImageFormat::JPEG)
+        .expect("could not write to thumbnail in content store"); 
+
+    dest_file.flush().expect("could not flush thumbnail to disk");
 }

@@ -31,13 +31,13 @@ impl ImageMeta {
     pub fn mime(&self) -> &'static str {
         match self.fmt {
             ImageFormat::BMP  => "image/bmp",
-            ImageFormat::GIF  => "image/gif",
+            ImageFormat::GIF => "image/gif",
             ImageFormat::HDR  => "image/x-hdr",
             ImageFormat::ICO  => "image/x-icon",
             ImageFormat::JPEG => "image/jpeg",
-            ImageFormat::PNG  => "image/png",
-            ImageFormat::PPM  => "image/x-portable-pixmap",
-            ImageFormat::TGA  => "image/tga",
+            ImageFormat::PNG => "image/png",
+            ImageFormat::PPM => "image/x-portable-pixmap",
+            ImageFormat::TGA => "image/tga",
             ImageFormat::TIFF => "image/tiff",
             ImageFormat::WEBP => "image/webp",
         }
