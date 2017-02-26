@@ -1,0 +1,3 @@
+SELECT * FROM ENTRIES WHERE 1 = 2;
+ALTER TABLE entries
+ADD COLUMN is_orphan boolean DEFAULT false;
