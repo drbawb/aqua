@@ -14,6 +14,11 @@ path = "src/bin/aqua_find.rs"
 doc = false
 
 [[bin]]
+name = "aqua-thumbfix"
+path = "src/bin/aqua_thumbfix.rs"
+doc = false
+
+[[bin]]
 name = "aqua-watch"
 path = "src/bin/aqua_watch.rs"
 doc = false
