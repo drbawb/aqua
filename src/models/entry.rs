@@ -1,7 +1,8 @@
-use schema::entries;
+use schema::{entries, entries_tags};
 
-#[derive(Debug, Identifiable, Queryable, Serialize)]
+#[derive(Debug, Associations, Identifiable, Queryable, Serialize)]
 #[table_name="entries"]
+#[has_many(entries_tags)]
 pub struct Entry {
     pub id:   i64,
     pub hash: String,

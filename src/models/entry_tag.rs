@@ -1,8 +1,10 @@
+use models::entry::Entry;
 use models::tag::Tag;
 use schema::entries_tags;
 
 #[derive(Debug, Associations, Identifiable, Queryable, Serialize)]
 #[table_name="entries_tags"]
+#[belongs_to(Entry)]
 #[belongs_to(Tag)]
 pub struct EntryTag {
     pub tag_id:   i64,
