@@ -148,7 +148,7 @@ fn establish_connection() -> ProcessingResult<PgConnection> {
 fn create_db_entry(digest: &str, mime_ty: &str) -> ProcessingResult<Entry> {
     let pg_conn = establish_connection()?;
     let aqua_entry = NewEntry { hash: &digest, mime: Some(&mime_ty) };
-    let entry: Result<Entry, diesel::result::Error> = diesel::insert(&aqua_entry)
+    let entry = diesel::insert(&aqua_entry)
         .into(schema::entries::table)
         .get_result(&pg_conn);
 
