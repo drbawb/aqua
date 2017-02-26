@@ -165,7 +165,7 @@ fn main() {
                 if path.is_file() { 
                     match handle_new_file(path, content_store) {
                         Ok(_res) => info!("file processed successfully ..."),
-                        Err(msg) => warn!("could not process file: {:?} (inner: {:?}", msg, msg.cause()),
+                        Err(msg) => warn!("could not process file: {:?} (inner: {:?})", msg, msg.cause()),
                     };
                 }
                 else { info!("directory created, ignoring ..."); }
@@ -216,6 +216,7 @@ fn handle_new_file(path: PathBuf, content_store: &str) -> Result<(), ProcessingE
 #[derive(Debug, Serialize, Deserialize)]
 struct FFProbeResult {
     format: Option<FFProbeFormat>,
+    streams: Option<Vec<FFProbeStream>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -232,6 +233,12 @@ struct FFProbeFormat {
     tags: HashMap<String, String>, // NOTE: not sure this is correct type
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct FFProbeStream {
+    codec_name: String,
+    codec_type: String,
+}
+
 struct FFProbeMeta {
     pub mime: &'static str,
     pub ext:  &'static str,
@@ -242,7 +249,8 @@ fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError> {
         .arg("-v").arg("quiet")            // silence debug output
         .arg("-hide_banner")               // don't print ffmpeg configuration
         .arg("-print_format").arg("json") // serialize to json
-        .arg("-show_format")              // use the serializer
+        .arg("-show_format")              // display format data
+        .arg("-show_streams")             // display stream data
         .arg("-i").arg(path.as_os_str())  // set the input to current file
         .output()?;
 
@@ -251,20 +259,34 @@ fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError> {
     info!("got result: {:?}", probe_result);
 
     // see if ffprobe was able to determine the file type ...
-    let probe_result = match probe_result.format {
+    let probe_format = match probe_result.format {
         Some(format_data) => format_data,
         None => return Ok(None),
     };
 
-    // TODO: handle alternate streams
-    if probe_result.nb_streams != 1 { return Err(ProcessingError::DetectionFailed) }
-
-    let meta_data = match probe_result.format_name.as_ref() {
-        "matroska,webm" => Some(FFProbeMeta { mime: "video/webm", ext: "webm" }),
-        _ => None,
+    let probe_streams = match probe_result.streams {
+        Some(stream_data) => stream_data,
+        None => return Ok(None),
     };
 
-    Ok(meta_data) // return the ffprobe results, if we know how to handle them ...
+    // welp ... guess there's nothing to thumbnail (!!!)
+    info!("got format: {:?}", probe_format);
+    info!("got streams: {:?}", probe_streams);
+
+    let number_of_videos = probe_streams
+        .iter()
+        .filter(|el| el.codec_type == "video")
+        .count();
+
+    if number_of_videos <= 0 { return Err(ProcessingError::DetectionFailed) }
+
+    let meta_data = if probe_format.format_name.contains("matroska") {
+        Some(FFProbeMeta { mime: "video/x-matroska", ext: "mkv" })
+    } else if probe_format.format_name.contains("mp4") {
+        Some(FFProbeMeta { mime: "video/mp4", ext: "mp4" })
+    } else { None };
+    
+    Ok(meta_data)
 }
 
 fn establish_connection() -> Result<PgConnection, ProcessingError> {
