@@ -190,6 +190,7 @@ fn handle_new_file(path: PathBuf, content_store: &str) -> Result<(), ProcessingE
     let mut buf = vec![];
     file.read_to_end(&mut buf)?;
 
+    // TODO: move_file() & db() is probably going to be common to all handlers?
     if let Some(image_metadata) = aqua::util::mime_detect(&buf) {
         info!("got an image ...");
         process_image(content_store, &digest, &buf)?;
@@ -280,6 +281,10 @@ fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError> {
 
     if number_of_videos <= 0 { return Err(ProcessingError::DetectionFailed) }
 
+    // TODO: how do we correlate format_name w/ stream & stream position?
+    // TODO: I believe this should be matching on containers (which is what will be moved
+    //       to the content store; and therefore what will be played back ...)
+    //      
     let meta_data = if probe_format.format_name.contains("matroska") {
         Some(FFProbeMeta { mime: "video/x-matroska", ext: "mkv" })
     } else if probe_format.format_name.contains("mp4") {
@@ -358,6 +363,9 @@ fn process_video(content_store: &str, digest: &str, src: &Path) -> Result<(), Pr
         .join(thumb_bucket)
         .join(thumb_filename);
 
+    // TODO: seems weird to have "mjpeg" in here... but I couldn't find any other
+    //       JPEG muxer/encoder in my ffmpeg install ...
+    //
     // write thumbnail file to disk
     fs::create_dir_all(dest.parent().unwrap())?;
     let ffmpeg_cmd = process::Command::new("ffmpeg")
