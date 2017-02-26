@@ -176,6 +176,7 @@ fn main() {
     }
 }
 
+// TODO: check that file doesn't exist before moving it ...
 fn handle_new_file(path: PathBuf, content_store: &str) -> Result<(), ProcessingError> {
     let digest = hash_file(path.as_path())
         .ok_or(ProcessingError::DigestFailed)?;
@@ -348,8 +349,9 @@ fn process_image(content_store: &str, digest: &str, buf: &[u8]) -> Result<(), Pr
         .join(thumb_filename);
 
     // write thumbnail file to disk
-    fs::create_dir_all(dest.parent().unwrap())?;
-    let mut dest_file = File::create(dest)?;
+    let bucket_dir = dest.parent().ok_or(ProcessingError::ThumbnailFailed)?;
+    fs::create_dir_all(bucket_dir)?;
+    let mut dest_file = File::create(&dest)?;
     thumb.save(&mut dest_file, image::ImageFormat::JPEG)?;
     Ok(dest_file.flush()?)
 }
@@ -367,7 +369,8 @@ fn process_video(content_store: &str, digest: &str, src: &Path) -> Result<(), Pr
     //       JPEG muxer/encoder in my ffmpeg install ...
     //
     // write thumbnail file to disk
-    fs::create_dir_all(dest.parent().unwrap())?;
+    let bucket_dir = dest.parent().ok_or(ProcessingError::ThumbnailFailed)?;
+    fs::create_dir_all(bucket_dir)?;
     let ffmpeg_cmd = process::Command::new("ffmpeg")
         .arg("-i").arg(src.as_os_str())            // the input file
         .arg("-vf").arg("thumbnail,scale=200:200") // have ffmpeg seek for a "thumbnail"
