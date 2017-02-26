@@ -80,6 +80,8 @@ fn main() {
     fs_watcher.watch(dropbox_path, RecursiveMode::NonRecursive)
         .expect("could not enroll dropbox in fs events queue");
 
+    // TODO: needs to wait for file to be completely written before attempting
+    //       to digest it ...
     // process filesystem events ...
     loop {
         match fs_rx.recv() {

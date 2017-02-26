@@ -84,7 +84,10 @@ pub fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError
     //       to the content store; and therefore what will be played back ...)
     //      
     let meta_data = if probe_format.format_name.contains("matroska") {
-        Some(FFProbeMeta { mime: "video/x-matroska", ext: "mkv" })
+        match is_webm(&probe_streams) {
+            true  => Some(FFProbeMeta { mime: "video/webm", ext: "webm" }),
+            false => Some(FFProbeMeta { mime: "video/x-matroska", ext: "mkv" }),
+        }
     } else if probe_format.format_name.contains("mp4") {
         Some(FFProbeMeta { mime: "video/mp4", ext: "mp4" })
     } else { None };
@@ -92,6 +95,26 @@ pub fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError
     Ok(meta_data)
 }
 
+/// FFProbe always reports arbitrary MKVs as "matroska,webm", to distinguish 
+/// between the two we simply check that all audio streams are `vorbis`, and 
+/// all video streams are `vp8` or `vp9`.
+fn is_webm(streams: &[FFProbeStream]) -> bool {
+    for stream in streams {
+        match (&stream.codec_type[..], &stream.codec_name[..]) {
+            ("video", "vp8")    => continue,
+            ("video", "vp9")    => continue,
+            ("audio", "vorbis") => continue,
+            _ => return false,
+        }
+    }
+
+    true // we did not find a stream which a webm can't contain
+}
+
+/// Creates a 200x200 JPEG thumbnail in the provided content store.
+/// The destination of the thumbnail is `content_store/<digest bucket>/<digest>.thumbnail`
+/// The bucket is used by taking the first byte (two hexadecimal characters) off the digest
+/// and prefixing that with a `t` to designate that it is a thumbnail bucket.
 pub fn process_video(content_store: &str, digest: &str, src: &Path) -> super::ProcessingResult<()> {
     let thumb_bucket   = format!("t{}", &digest[0..2]);
     let thumb_filename = format!("{}.thumbnail", &digest);
