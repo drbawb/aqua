@@ -117,7 +117,7 @@ pub fn submit(conn: &mut plug::Conn) {
         .and_then(|form| extract_file(form, "upload"));
 
     let digest = file_upload.as_ref()
-            .and_then(|file| hash_file(file.path.as_path()));
+            .and_then(|file| util::processing::hash_file(file.path.as_path()).ok());
 
     // TODO: these are gross b/c we can't return anything, thus there's no good
     //       way to use Result+`try!` ...
@@ -162,7 +162,7 @@ fn write_entry(conn: &mut plug::Conn, digest: String, file: SavedFile) {
     // read into temp buffer
     let mut buf = vec![];
     let file_ty = match file.read_to_end(&mut buf) {
-        Ok(_size) => util::mime_detect(&buf[..]),
+        Ok(_size) => util::processing::detect_image(&buf[..]),
         Err(_msg) => { conn.send_resp(500, "could not read your upload..."); return },
     };
 

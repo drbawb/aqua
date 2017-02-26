@@ -1,15 +1,9 @@
 pub use std::io::Cursor;
 pub use conduit::{Request, Response, WriteBody};
 
-use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
 
 use aqua_web::mw::forms::{MultipartForm, FormField, SavedFile};
-use crypto::digest::Digest;
-use crypto::sha2::Sha256;
 
 /// Send an `200 OK` response w/ mime: `TEXT/HTML`
 pub fn respond_html<B>(body: B) -> Response 
@@ -28,21 +22,4 @@ pub fn extract_file(form: &mut MultipartForm, field: &str) -> Option<SavedFile> 
         Some(_) => { warn!("file expected, but got string"); None },
         None    => { warn!("file expected, but not present"); None },
     }
-}
-
-pub fn hash_file(path: &Path) -> Option<String> {
-    let mut buf = vec![];
-
-    info!("path exists? {}",  (path.borrow()).exists());
-    info!("path is file? {}", (path.borrow()).is_file());
-
-    File::open(path)
-         .and_then(|mut file| { file.read_to_end(&mut buf) })
-         .map(|size| {
-
-        debug!("read {} bytes into digest", size);
-        let mut digest = Sha256::new();
-        digest.input(&mut buf);
-        digest.result_str()
-    }).ok()
 }
