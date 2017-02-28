@@ -5,21 +5,16 @@ extern crate clap;
 extern crate diesel;
 extern crate dotenv;
 extern crate env_logger;
-extern crate image;
 
-use aqua::models::{Entry, EntryTag, Tag, NewEntry};
+use aqua::models::{Entry, EntryTag, Tag};
 use aqua::schema;
 use aqua::util::processing;
 use clap::{Arg, App};
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
 use dotenv::dotenv;
-use std::{env, fs};
-use std::error::Error;
-use std::fs::OpenOptions;
-use std::io::Read;
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::env;
+use std::path::PathBuf;
 
 fn main() {
     dotenv().expect("must provide .env file, see README (TODO: haha jk)");
@@ -38,7 +33,11 @@ fn main() {
 
 
     let content_store = matches.value_of("CONTENT_PATH").unwrap();
-    process_entries(&content_store[..]);
+
+    match process_entries(&content_store[..]) {
+        Ok(_) => info!("a-ok!"),
+        Err(msg) => warn!("thumbfix encountered an error: {:?}", msg),
+    }
 }
 
 fn establish_connection() -> processing::Result<PgConnection> {
@@ -61,7 +60,7 @@ fn process_entries(content_store: &str) -> processing::Result<()> {
         .load::<(Entry, EntryTag)>(&conn)?;
 
     info!("found {} entries in need of thumbs", entries.len());
-    for &(ref entry, ref mapping) in &entries {
+    for &(ref entry, ref _mapping) in &entries {
         let ext = entry.mime.as_ref()
             .unwrap()
             .splitn(2, "/")
