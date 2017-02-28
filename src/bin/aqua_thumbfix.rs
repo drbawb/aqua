@@ -9,7 +9,7 @@ extern crate image;
 
 use aqua::models::{Entry, EntryTag, Tag, NewEntry};
 use aqua::schema;
-use aqua::util::processing::{ProcessingError, ProcessingResult};
+use aqua::util::processing;
 use clap::{Arg, App};
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
@@ -41,14 +41,14 @@ fn main() {
     process_entries(&content_store[..]);
 }
 
-fn establish_connection() -> ProcessingResult<PgConnection> {
+fn establish_connection() -> processing::Result<PgConnection> {
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL not set in `.env` file !!!");
 
     Ok(PgConnection::establish(&database_url)?)
 }
 
-fn process_entries(content_store: &str) -> ProcessingResult<()> {
+fn process_entries(content_store: &str) -> processing::Result<()> {
     let conn = establish_connection()?;
     
     let missing_thumb_tag = schema::tags::table

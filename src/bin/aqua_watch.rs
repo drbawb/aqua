@@ -35,7 +35,7 @@ extern crate serde_json;
 
 use aqua::models::{Entry, NewEntry};
 use aqua::schema;
-use aqua::util::processing::{ProcessingError, ProcessingResult};
+use aqua::util::processing;
 use clap::{Arg, App};
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
@@ -101,7 +101,7 @@ fn main() {
 }
 
 // TODO: check that file doesn't exist before moving it ...
-fn handle_new_file(path: PathBuf, content_store: &str) -> ProcessingResult<()> {
+fn handle_new_file(path: PathBuf, content_store: &str) -> processing::Result<()> {
     let digest = aqua::util::processing::hash_file(path.as_path())?;
     let mut file = OpenOptions::new()
         .read(true)
@@ -133,11 +133,11 @@ fn handle_new_file(path: PathBuf, content_store: &str) -> ProcessingResult<()> {
 
         Ok(())
     } else {
-        Err(ProcessingError::DetectionFailed)
+        Err(processing::Error::DetectionFailed)
     }
 }
 
-fn establish_connection() -> ProcessingResult<PgConnection> {
+fn establish_connection() -> processing::Result<PgConnection> {
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL not set in `.env` file !!!");
 
@@ -145,7 +145,7 @@ fn establish_connection() -> ProcessingResult<PgConnection> {
 }
 
 // create entry in database
-fn create_db_entry(digest: &str, mime_ty: &str) -> ProcessingResult<Entry> {
+fn create_db_entry(digest: &str, mime_ty: &str) -> processing::Result<Entry> {
     let pg_conn = establish_connection()?;
     let aqua_entry = NewEntry { hash: &digest, mime: Some(&mime_ty) };
     let entry = diesel::insert(&aqua_entry)
@@ -156,7 +156,7 @@ fn create_db_entry(digest: &str, mime_ty: &str) -> ProcessingResult<Entry> {
 }
 
 // moves the file from `src_path` to the `content_store` based on its digest
-fn move_file(src_path: &Path, content_store: &str, digest: &str, file_ext: &str) -> ProcessingResult<()> {
+fn move_file(src_path: &Path, content_store: &str, digest: &str, file_ext: &str) -> processing::Result<()> {
     // carve out a bucket based on first byte of SHA256 digest
     // create the bucket if it does not exist
     let file_bucket    = format!("f{}", &digest[0..2]);
@@ -168,7 +168,7 @@ fn move_file(src_path: &Path, content_store: &str, digest: &str, file_ext: &str)
         .join(file_filename);
 
     // TODO: bad error type ... 
-    let bucket_dir = dest.parent().ok_or(ProcessingError::ThumbnailFailed)?;
+    let bucket_dir = dest.parent().ok_or(processing::Error::ThumbnailFailed)?;
     fs::create_dir_all(bucket_dir)?;
 
     // move the file 

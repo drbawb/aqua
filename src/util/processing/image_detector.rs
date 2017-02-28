@@ -2,7 +2,6 @@ use image::{self, ImageFormat};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
-use super::{ProcessingError, ProcessingResult};
 
 /// ImageMeta stores mappings of common image filetypes to their associated
 /// MIME type and typical file extension. This is useful in processing files 
@@ -75,7 +74,7 @@ pub fn mime_detect(data: &[u8]) -> Option<ImageMeta> {
 
 // creates a thumbnail in the content store for the specified digest
 // this expects an `ImageMeta` structure describing the input.
-pub fn process_image(content_store: &str, digest: &str, buf: &[u8]) -> ProcessingResult<()> {
+pub fn process_image(content_store: &str, digest: &str, buf: &[u8]) -> super::Result<()> {
     // create in memory thumbnail
     let image = image::load_from_memory(&buf)?;
 
@@ -89,7 +88,7 @@ pub fn process_image(content_store: &str, digest: &str, buf: &[u8]) -> Processin
         .join(thumb_filename);
 
     // write thumbnail file to disk
-    let bucket_dir = dest.parent().ok_or(ProcessingError::ThumbnailFailed)?;
+    let bucket_dir = dest.parent().ok_or(super::Error::ThumbnailFailed)?;
     fs::create_dir_all(bucket_dir)?;
     let mut dest_file = File::create(&dest)?;
     thumb.save(&mut dest_file, image::ImageFormat::JPEG)?;

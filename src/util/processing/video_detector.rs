@@ -2,7 +2,6 @@ use serde_json;
 use std::{fs, process};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use super::ProcessingError;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FFProbeResult {
@@ -43,7 +42,7 @@ pub struct FFProbeMeta {
 /// The container format is then mapped to a common mime & extension which is used
 /// by other parts of the `aqua` application suite to determine how an asset should
 /// be displayed.
-pub fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError> {
+pub fn ffmpeg_detect(path: &Path) -> super::Result<Option<FFProbeMeta>> {
     let ffprobe_cmd = process::Command::new("ffprobe")
         .arg("-v").arg("quiet")            // silence debug output
         .arg("-hide_banner")               // don't print ffmpeg configuration
@@ -77,7 +76,7 @@ pub fn ffmpeg_detect(path: &Path) -> Result<Option<FFProbeMeta>, ProcessingError
         .filter(|el| el.codec_type == "video")
         .count();
 
-    if number_of_videos <= 0 { return Err(ProcessingError::DetectionFailed) }
+    if number_of_videos <= 0 { return Err(super::Error::DetectionFailed) }
 
     // TODO: how do we correlate format_name w/ stream & stream position?
     // TODO: I believe this should be matching on containers (which is what will be moved
@@ -115,7 +114,7 @@ fn is_webm(streams: &[FFProbeStream]) -> bool {
 /// The destination of the thumbnail is `content_store/<digest bucket>/<digest>.thumbnail`
 /// The bucket is used by taking the first byte (two hexadecimal characters) off the digest
 /// and prefixing that with a `t` to designate that it is a thumbnail bucket.
-pub fn process_video(content_store: &str, digest: &str, src: &Path) -> super::ProcessingResult<()> {
+pub fn process_video(content_store: &str, digest: &str, src: &Path) -> super::Result<()> {
     let thumb_bucket   = format!("t{}", &digest[0..2]);
     let thumb_filename = format!("{}.thumbnail", &digest);
 
@@ -128,7 +127,7 @@ pub fn process_video(content_store: &str, digest: &str, src: &Path) -> super::Pr
     //       JPEG muxer/encoder in my ffmpeg install ...
     //
     // write thumbnail file to disk
-    let bucket_dir = dest.parent().ok_or(ProcessingError::ThumbnailFailed)?;
+    let bucket_dir = dest.parent().ok_or(super::Error::ThumbnailFailed)?;
     fs::create_dir_all(bucket_dir)?;
     let ffmpeg_cmd = process::Command::new("ffmpeg")
         .arg("-i").arg(src.as_os_str())            // the input file
@@ -146,6 +145,6 @@ pub fn process_video(content_store: &str, digest: &str, src: &Path) -> super::Pr
 
     match dest.is_file() {
         true  => Ok(()),
-        false => Err(ProcessingError::ThumbnailFailed),
+        false => Err(super::Error::ThumbnailFailed),
     }
 }
