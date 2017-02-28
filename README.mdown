@@ -12,7 +12,7 @@ This is a brand new project, most things are probably incomplete and/or terribly
 
 ---
 
-`aqua` is a program to manage large image libraries using a combination of two ideas:
+`aqua` is a suite of programs to manage large media libraries using a combination of two ideas:
 
 - Content addressable file storage: all media imported into `aqua` will be stored on disk
   according to its unique SHA-256 fingerprint. This allows for rapid (exact) duplicate detection,
@@ -21,18 +21,35 @@ This is a brand new project, most things are probably incomplete and/or terribly
 - Searchable tags: users can create any number of tags and apply them to any number of hashes.
   This allows for extremely flexible organization, along with powerful search & query capabilities.
   
-The program will consist of two major parts:
+The suite consists of a few major parts:
 
-- aqua-remote: a web server which allows you to upload files & URLs from any web browser.
-  your server will fetch these files and automatically import them to your central library.
+- aqua: the reference UI, built as a web application. It's very rough, mostly because
+  I've been neglecting it and working on a native (C#/WPF) Windows GUI instead.
 
-- aqua-dropbox: a small directory watcher which can be used to import media from certain
-  directories on the machine which hosts your central library. In practice this works exactly
-  like the web UI, it simply offers quick & dirty integration w/ your OS's native save dialog.
+- aqua-watch: a small directory watcher which instantaneously imports media into the `aqua`
+  database when it is written to a directory. This enables a very nice: "save it-then-tag it"
+  workflow whereby you can simply open the app and browse untagged entries.
 
-These programs will share a common database. At the moment `aqua` requires that you have access
-to a working PostgreSQL database. _(This database is only used for storing metadata about the repository,
-as such it does not necessarily need to be on the same machine which hosts the media files themselves.)_
+- aqua-thumbfix: any entries tagged as "THUMB" will be reprocessed by the same thumbnailing
+  engine that `aqua-watch` uses. This is useful if you've somehow imported a file which `aqua`
+  could not thumbnail at the time of import. It's also useful if your thumbnail storage has
+  become lost or corrupted.
+
+These two applications currently live in a separate repo, since they're written in C#:
+
+- sister-agnes: simply marks entries in the database which do not exist on disk.
+  This should be fast enough as it only cares about directory listings, but it does
+  enumerate your entire content store. As such it's a fairly expensive operation, and
+  frankly I'm not sure how it performs on non-solid state storage. Use this sparingly.
+
+- `aqua_ui_wpf`: this lives in a separate repo, it's a C# / WPF application that provides a
+  native frontend and file browser. I'd love to eventually write this in Rust, but from my
+  (admittedly very brief) survey of Rust bindings to GUI toolkits -- it's just not ready.
+
+These programs will share a common database. At the moment `aqua` requires that
+you have access to a working PostgreSQL database. _(This database is only used
+for storing metadata about the repository, as such it does not necessarily need
+to be on the same machine which hosts the media files themselves.)_
 
 ## Getting Started
 
@@ -61,3 +78,44 @@ At the moment a few routes that can be used include:
 - `GET /entries/{id}/tags` sends a JSON encoded list of tags for a given entry.
 
 [jwz]: https://www.jwz.org/doc/backups.html
+
+## Why?
+
+Frankly: I think modern incarnations of filesystems are *flawed by design.*
+What is a filename? It's a human readable tag so you can quickly identify a
+document alongside its peers. What are its peers? Other listings in the
+same parent directory, of course. Tell me: does your manilla folder error
+out if you try to put two copies of the same document in? What about two different
+documents with the same cover page? Of course it doesn't, because "directories" can 
+contain anything and everything. -- Not only are modern filesystems based upon a rather
+terrible "office metaphor", they don't even adhere to the fundamental principles of said
+physical metaphor!
+
+If a filename only exists to aid the human, why must it be unique? Even modern OS
+shells have admitted that filenames are *not in fact unique.* This is evidenced
+in the fact that almost every save dialog, download manager, etc. will 
+*automatically re-sequence duplicate filenames.*
+
+Consider the digital camera: what meaning do its filenames have? They're usually either
+some sort of sequence number, e.g: a *sequence tag*, or they're a timestamp *which has
+already been stored by the filesystem!* The timestamp is only appended to work around
+the limitation that filenames must be unique, it serves no functional purpose!
+
+To that end: why are you limited to *only one human readable tag?* Libraries have
+many catalogs which you can search through. Their contents are, effectively,
+pointers into their shelves. In this way: aqua is exactly like a library. 
+Through schemas and tags you build up a number of indices which are easily 
+searchable by a human. These point to *truly unique* file entries in a content-
+addressable filestore.
+
+If aqua is like a library that means that you, my dear user, have become a librarian.
+Let me just take this opportunity to say: **librarians are awesome.**
+
+To address these concerns, `aqua` separates the filesystem into two orthogonal
+concerns:
+
+- Storing & accessing unique file entries on disk efficiently
+- Storing metadata about those files such that it is easily queryable
+
+I've written more about the motivation for aqua, along with the "user story" of a
+potential command line shell. You can view it in [this gist.](https://gist.github.com/drbawb/8df47cb4a987ad3b5a29dd4fa29d20ea)
