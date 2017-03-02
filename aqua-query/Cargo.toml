@@ -1,0 +1,12 @@
+[package]
+name = "aqua-query"
+version = "0.1.0"
+authors = ["Robbie Straw <drbawb@fatalsyntax.com>"]
+
+[workspace]
+
+[lib]
+name = "aqua_query"
+crate-type = ["dylib"]
+
+[dependencies]
