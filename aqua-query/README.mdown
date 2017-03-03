@@ -1,0 +1,75 @@
+##  `aqua-query` 
+### a simple frontend for querying the aqua database.
+
+
+**DISCLAIMER** This software generates SQL queries with no regards for
+sanitizing input. As such it should not (yet) be exposed to untrusted
+clients. Use at your own risk.
+
+It will totally bork your aqua database if you have tags that happen to
+look like SQL injection attacks. ;-P
+
+### Description
+
+This is a simple frontend that supports the following input:
+
+- Operators
+  - `+`: resolves to the intersection of the left & right tags.
+  - `-`: resolves to the set difference of the left & right tags.
+  - `*`: resolves to the union of the left & right tags.
+
+Grammar
+
+    grouping ::= (expr, ...)
+    expr ::= <tag name>
+         ||= <grouping>
+         ||= <expr> <OP> <expr>
+
+Consider the following example:
+
+    ((dank + memes) * reaction images) - gif
+
+This would return the following:
+
+- all entries with BOTH `<dank>` and `<memes>` tags
+- OR any entry with the `reaction images` tag.
+- BUT any `gif`s will be removed from the results
+
+### Precedence
+
+Queries are parsed *however* they obey the precedence rules specified by
+aqua's underlying database, PostgreSQL. As such union & difference operations
+have the same precedence, but intersections bind more tightly.
+
+This means that a query such as:
+
+    a * b + c - d
+
+Is actually processed as:
+
+    a * (b + c) - d
+
+Not:
+
+    (a * b) + (c - d)
+
+If you wish to resolve such ambiguities when mixing intersections with
+other queries you must manually apply groupings.
+
+### Input
+
+This library can be called from rust, alternatively functions suitable
+for use with C strings (`char *`) are provided. As such this can be linked
+from other programs and used to parse queries.
+
+Why? FOR SCIENCE OF COURSE!
+
+### Output
+
+The output is a query which will select (distinct) entry record IDs from
+the `entries_tags` mapping table. These IDs can be used as a subquery or
+join to fetch the entries themselves.
+
+_At present tag input is UNESCAPED meaning if it contains single quotes
+or other special characters the database query engine will process them
+literally. Use this query generator at your own risk._
