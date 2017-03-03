@@ -56,6 +56,18 @@ Not:
 If you wish to resolve such ambiguities when mixing intersections with
 other queries you must manually apply groupings.
 
+
+Note that taking the set difference is *not* commutative. Therefore the
+expression: `(b - a) != (a - b)`. For e.g:
+
+    `doge - shiba` will return any doges that aren't shibas. 
+    (e.g: the empty set)
+
+Whereas:
+
+    `shiba - doge` will return all your shibas that aren't doge memes.
+    (e.g: probably the empty set, unless you really like shibas.)
+
 ### Input
 
 This library can be called from rust, alternatively functions suitable
