@@ -115,7 +115,12 @@ fn visit_ast_node(node: AstNode) -> String {
 fn entry_set(tag_name: &str) -> String {
     format!("SELECT entry_id FROM entries_tags
 INNER JOIN tags ON tags.id = entries_tags.tag_id
-WHERE tags.name = '{}'", tag_name)
+WHERE tags.name = E'{}'", escape_tag(tag_name))
+}
+
+fn escape_tag(tag_name: &str) -> String{
+    tag_name.replace("\\", "\\\\")
+            .replace("'", "\\'")
 }
 
 fn add_tag(ctx: &mut Context, buf: &mut String) {
