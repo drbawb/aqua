@@ -37,7 +37,7 @@ This would return the following:
 
 ### Precedence
 
-Queries are parsed *however* they obey the precedence rules specified by
+Queries are parsed left to right *however* they obey the precedence rules specified by
 aqua's underlying database, PostgreSQL. As such union & difference operations
 have the same precedence, but intersections bind more tightly.
 
