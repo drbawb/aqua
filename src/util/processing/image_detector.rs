@@ -91,6 +91,17 @@ pub fn process_image(content_store: &str, digest: &str, buf: &[u8]) -> super::Re
     let bucket_dir = dest.parent().ok_or(super::Error::ThumbnailFailed)?;
     fs::create_dir_all(bucket_dir)?;
     let mut dest_file = File::create(&dest)?;
-    thumb.save(&mut dest_file, image::ImageFormat::JPEG)?;
+
+
+    {
+        // HACK: force image to be saved as rgba, grayscale jpg thumbnails are broken
+        // (for some reason they come out all white)
+        let rgba_image = thumb.to_rgba();
+        let bytes = rgba_image.into_raw();
+        let mut encoder = ::image::jpeg::JPEGEncoder::new(&mut dest_file);
+        encoder.encode(&bytes, 200, 200, ::image::ColorType::RGBA(8))?;
+    }
+
+    // thumb.save(&mut dest_file, image::ImageFormat::JPEG)?;
     Ok(dest_file.flush()?)
 }
